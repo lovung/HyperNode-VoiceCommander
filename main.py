@@ -156,9 +156,9 @@ def apiaiPGetResponse(transcript):
     request.session_id = "vulong"
     request.query = transcript
     response = request.getresponse()
-    
-    print(response.read())
-    
+
+    return response.read()
+
 
 if __name__ == '__main__':
     while 1:
@@ -171,12 +171,21 @@ if __name__ == '__main__':
                 audio_file, content_type='audio/wav', timestamps=True,
                 word_confidence=True),
                 indent=2)
-            print(json_data)
-            data = json.loads(json_data)
-            if data["results"]:
-                transcript = data["results"][0][
+            json_data = json.loads(json_data)
+            if json_data["results"]:
+                transcript = json_data["results"][0][
                     "alternatives"][0]["transcript"]
-                print("Transcript", transcript)
-                apiaiPGetResponse(transcript)
+                print("Transcript")
+                print(transcript)
+                apiaiResponse = apiaiPGetResponse(transcript)
+                print(apiaiResponse)
+                apiaiResponse = json.loads(apiaiResponse)
+                if apiaiResponse["result"]:
+                    print(apiaiResponse["result"]["action"])
+                    print(apiaiResponse["result"]["fulfillment"]["speech"])
+                    print(apiaiResponse["result"]["fulfillment"][
+                          "messages"][0]["speech"])
+                else:
+                    print("Null api results")
             else:
-            	print("Null results")
+                print("Null watson results")
