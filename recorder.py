@@ -127,12 +127,13 @@ def record_to_file(path):
     wf.close()
 
 if __name__ == '__main__':
-    print("please speak a word into the microphone")
-    record_to_file('demo.wav')
-    print("done - result written to demo.wav")
-    with open(join(dirname(__file__), 'demo.wav'),
-          'rb') as audio_file:
-        print(json.dumps(speech_to_text.recognize(
-            audio_file, content_type='audio/wav', timestamps=True,
-            word_confidence=True),
-            indent=2))
+    while 1:
+        print("please speak a word into the microphone")
+        record_to_file('demo.wav')
+        print("done - result written to demo.wav")
+        with open(join(dirname(__file__), 'demo.wav'),
+              'rb') as audio_file:
+            print(json.dumps(speech_to_text.recognize(
+                audio_file, content_type='audio/wav', timestamps=True,
+                word_confidence=True),
+                indent=2))
