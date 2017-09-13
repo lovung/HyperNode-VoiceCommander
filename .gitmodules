@@ -1,9 +1,6 @@
-[submodule "python-sdk"]
-	path = python-sdk
-	url = https://github.com/watson-developer-cloud/python-sdk.git
-[submodule "apiai-python-client"]
-	path = apiai-python-client
-	url = https://github.com/api-ai/apiai-python-client.git
-[submodule "pocketsphinx-python"]
-        path = pocketsphinx-python
-        url = https://github.com/cmusphinx/pocketsphinx-python.git
+[submodule "lib/API.AI"]
+	path = lib/API.AI
+	url = https://github.com/api-ai/apiai-python-client
+[submodule "lib/GoogleCloudPlatform"]
+	path = lib/GoogleCloudPlatform
+	url = https://github.com/GoogleCloudPlatform/python-docs-samples.git
