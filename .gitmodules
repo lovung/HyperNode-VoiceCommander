@@ -1,9 +1,6 @@
 [submodule "lib/API.AI"]
 	path = lib/API.AI
 	url = https://github.com/api-ai/apiai-python-client
-[submodule "lib/GoogleCloudPlatform"]
-	path = lib/GoogleCloudPlatform
-	url = https://github.com/GoogleCloudPlatform/python-docs-samples.git
 [submodule "lib/GoogleCloudPython"]
 	path = lib/GoogleCloudPython
 	url = https://github.com/GoogleCloudPlatform/google-cloud-python.git
