@@ -4,3 +4,6 @@
 [submodule "lib/GoogleCloudPython"]
 	path = lib/GoogleCloudPython
 	url = https://github.com/GoogleCloudPlatform/google-cloud-python.git
+[submodule "lib/GoogleCloudPlatform"]
+	path = lib/GoogleCloudPlatform
+	url = https://github.com/GoogleCloudPlatform/python-docs-samples.git
