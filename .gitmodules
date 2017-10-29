@@ -1,9 +1,9 @@
-[submodule "lib/API.AI"]
-	path = lib/API.AI
-	url = https://github.com/api-ai/apiai-python-client
-[submodule "lib/GoogleCloudPython"]
-	path = lib/GoogleCloudPython
-	url = https://github.com/GoogleCloudPlatform/google-cloud-python.git
-[submodule "lib/GoogleCloudPlatform"]
-	path = lib/GoogleCloudPlatform
+[submodule "GoogleCloudPlatform"]
+	path = GoogleCloudPlatform
 	url = https://github.com/GoogleCloudPlatform/python-docs-samples.git
+[submodule "DialogFlow"]
+	path = DialogFlow
+	url = https://github.com/dialogflow/dialogflow-python-client.git
+[submodule "PocketSphinx-Python"]
+	path = PocketSphinx-Python
+	url = https://github.com/cmusphinx/pocketsphinx-python.git
