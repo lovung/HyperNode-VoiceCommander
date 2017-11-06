@@ -2,7 +2,8 @@ from sys import byteorder
 from array import array
 from struct import pack
 from os.path import join, dirname
-from watson_developer_cloud import SpeechToTextV1
+# from watson_developer_cloud import SpeechToTextV1
+from transcribe_streaming_mic import speech2Text
 import json
 import pyaudio
 import wave
@@ -22,11 +23,11 @@ except ImportError:
 
 CLIENT_ACCESS_TOKEN = 'df1ec06dbe73433aa3d33b2a4674c542'
 
-speech_to_text = SpeechToTextV1(
-    username='bdc32f14-9895-419b-8ad2-dd6030248aad',
-    password='16GMSUKRDSfP',
-    x_watson_learning_opt_out=False
-)
+# speech_to_text = SpeechToTextV1(
+#     username='bdc32f14-9895-419b-8ad2-dd6030248aad',
+#     password='16GMSUKRDSfP',
+#     x_watson_learning_opt_out=False
+# )
 
 # print(json.dumps(speech_to_text.models(), indent=2))
 
@@ -162,30 +163,46 @@ def apiaiPGetResponse(transcript):
 
 if __name__ == '__main__':
     while 1:
-        print("please speak a word into the microphone")
-        record_to_file('demo.wav')
-        print("done - result written to demo.wav")
-        with open(join(dirname(__file__), 'demo.wav'),
-                  'rb') as audio_file:
-            json_data = json.dumps(speech_to_text.recognize(
-                audio_file, content_type='audio/wav', timestamps=True,
-                word_confidence=True),
-                indent=2)
-            json_data = json.loads(json_data)
-            if json_data["results"]:
-                transcript = json_data["results"][0][
-                    "alternatives"][0]["transcript"]
-                print("Transcript")
-                print(transcript)
-                apiaiResponse = apiaiPGetResponse(transcript)
-                print(apiaiResponse)
-                apiaiResponse = json.loads(apiaiResponse)
-                if apiaiResponse["result"]:
-                    print(apiaiResponse["result"]["action"])
-                    print(apiaiResponse["result"]["fulfillment"]["speech"])
-                    print(apiaiResponse["result"]["fulfillment"][
-                          "messages"][0]["speech"])
-                else:
-                    print("Null api results")
-            else:
-                print("Null watson results")
+        # print("please speak a word into the microphone")
+        # record_to_file('demo.wav')
+        # print("done - result written to demo.wav")
+
+        # Use Google API stream mic:
+        transcript = speech2Text()
+        apiaiResponse = apiaiPGetResponse(transcript)
+        print(apiaiResponse.decode('utf-8'))
+        apiaiResponse = json.loads(apiaiResponse.decode('utf-8'))
+        if apiaiResponse["result"]:
+            print(apiaiResponse["result"]["action"])
+            print(apiaiResponse["result"]["fulfillment"]["speech"])
+            print(apiaiResponse["result"]["fulfillment"][
+                  "messages"][0]["speech"])
+        else:
+            print("Null api results")
+
+        # Use Watson API.
+
+        # with open(join(dirname(__file__), 'demo.wav'),
+        #           'rb') as audio_file:
+        #     json_data = json.dumps(speech_to_text.recognize(
+        #         audio_file, content_type='audio/wav', timestamps=True,
+        #         word_confidence=True),
+        #         indent=2)
+        #     json_data = json.loads(json_data)
+        #     if json_data["results"]:
+        #         transcript = json_data["results"][0][
+        #             "alternatives"][0]["transcript"]
+        #         print("Transcript")
+        #         print(transcript)
+        #         apiaiResponse = apiaiPGetResponse(transcript)
+        #         print(apiaiResponse)
+        #         apiaiResponse = json.loads(apiaiResponse)
+        #         if apiaiResponse["result"]:
+        #             print(apiaiResponse["result"]["action"])
+        #             print(apiaiResponse["result"]["fulfillment"]["speech"])
+        #             print(apiaiResponse["result"]["fulfillment"][
+        #                   "messages"][0]["speech"])
+        #         else:
+        #             print("Null api results")
+        #     else:
+        #         print("Null watson results")
