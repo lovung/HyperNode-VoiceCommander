@@ -9,6 +9,9 @@ import pyaudio
 import wave
 import os.path
 import sys
+from gtts import gTTS
+import os
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -174,9 +177,18 @@ if __name__ == '__main__':
         apiaiResponse = json.loads(apiaiResponse.decode('utf-8'))
         if apiaiResponse["result"]:
             print(apiaiResponse["result"]["action"])
-            print(apiaiResponse["result"]["fulfillment"]["speech"])
-            print(apiaiResponse["result"]["fulfillment"][
-                  "messages"][0]["speech"])
+            speechScript = apiaiResponse["result"]["fulfillment"]["speech"]
+            if speechScript:
+                print(speechScript)
+                tts = gTTS(text=speechScript, lang='en')
+                tts.save("speech.mp3")
+                os.system("mpg321 speech.mp3")
+            speechScript2 = apiaiResponse["result"]["fulfillment"]["messages"][0]["speech"]
+            if (speechScript != speechScript2) and speechScript2:
+                tts = gTTS(text=speechScript2, lang='en')
+                tts.save("speech.mp3")
+                os.system("mpg321 speech.mp3")
+                print(speechScript)
         else:
             print("Null api results")
 
