@@ -7,3 +7,6 @@
 [submodule "PocketSphinx-Python"]
 	path = PocketSphinx-Python
 	url = https://github.com/cmusphinx/pocketsphinx-python.git
+[submodule "snowboy"]
+	path = snowboy
+	url = https://github.com/Kitt-AI/snowboy.git
