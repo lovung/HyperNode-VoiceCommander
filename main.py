@@ -31,12 +31,19 @@ except ImportError:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "snowboy/examples/Python3"))
     import snowboydecoder
 
+try:
+    import amqp_client
+except ImportError:
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "utils"))
+    import amqp_client as amqp
+
 CLIENT_ACCESS_TOKEN = '587dba5ac7de45b3a05b7901a04f5b2e'
 
 TOP_DIR = os.path.dirname(os.path.abspath(__file__))
 interrupted = False
 model = os.path.join(TOP_DIR, "models/Hyper.pmdl")
 detector = snowboydecoder.HotwordDetector(model, sensitivity=0.4)
+state = "Sleep";
 
 # speech_to_text = SpeechToTextV1(
 #     username='bdc32f14-9895-419b-8ad2-dd6030248aad',
@@ -116,22 +123,13 @@ def hotWordCallback():
     snowboydecoder.play_audio_file()
     print("Terminate hotWordDetect")
     detector.terminate()
-    time.sleep(1)
-    while 1:
-        parsedAction = voice2JSONProcess()
-        if (parsedAction == -1):
-            break
-        if (parsedAction == "smalltalk.greetings.bye"):
-            break
-        # else:
-            # assignAction(parsedAction)
-    main()
-
+    time.sleep(0.3)
+    global state
+    state = "Run"
 
 def signal_handler(signal, frame):
     global interrupted
     interrupted = True
-
 
 def interrupt_callback():
     global interrupted
@@ -141,17 +139,32 @@ def hotWordDetect(modelPath=model):
     # capture SIGINT signal, e.g., Ctrl+C
     signal.signal(signal.SIGINT, signal_handler)
 
-    
     print('Listening... Press Ctrl+C to exit')
 
     # main loop
     detector.start(detected_callback=hotWordCallback,
                    interrupt_check=interrupt_callback,
-                   sleep_time=0.03)
-    
+                   sleep_time=0.03)    
 
 def main():
-    hotWordDetect()
+    AMQPClient = amqp.hyperAMQPClient()
+    AMQPTopic = AMQPClient.topicGenerator("000AE22F0031", "0001", "lightManager", "sub")
+    AMQPClient.declareTopic(AMQPTopic)
+    AMQPClient.publishMessage(AMQPTopic, "Hello Hyper")
+    while 1:
+        global state
+        if state == "Sleep":
+            hotWordDetect()
+        else:
+            while 1:
+                parsedAction = voice2JSONProcess()
+                if (parsedAction == -1):
+                    break
+                if (parsedAction == "smalltalk.greetings.bye"):
+                    break
+                # else:
+                    # assignAction(parsedAction)
+            state = "Sleep"
 
 if __name__ == '__main__':
     main()
