@@ -16,6 +16,7 @@ import sys
 from gtts import gTTS
 import os
 import time
+import traceback
 
 try:
     import apiai
@@ -34,7 +35,7 @@ except ImportError:
 try:
     import amqp_client
 except ImportError:
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "utils"))
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "utils/AMQP"))
     import amqp_client as amqp
 
 CLIENT_ACCESS_TOKEN = '587dba5ac7de45b3a05b7901a04f5b2e'
@@ -42,7 +43,7 @@ CLIENT_ACCESS_TOKEN = '587dba5ac7de45b3a05b7901a04f5b2e'
 TOP_DIR = os.path.dirname(os.path.abspath(__file__))
 interrupted = False
 model = os.path.join(TOP_DIR, "models/Hyper.pmdl")
-detector = snowboydecoder.HotwordDetector(model, sensitivity=0.4)
+detector = snowboydecoder.HotwordDetector(model, sensitivity=0.6)
 state = "Sleep";
 
 # speech_to_text = SpeechToTextV1(
@@ -119,6 +120,7 @@ def voice2JSONProcess():
     #             print("Null api results")
     #     else:
     #         print("Null watson results")
+
 def hotWordCallback():
     snowboydecoder.play_audio_file()
     print("Terminate hotWordDetect")
@@ -127,7 +129,7 @@ def hotWordCallback():
     global state
     state = "Run"
 
-def signal_handler(signal, frame):
+def signal_handler():
     global interrupted
     interrupted = True
 
@@ -137,36 +139,57 @@ def interrupt_callback():
 
 def hotWordDetect(modelPath=model):
     # capture SIGINT signal, e.g., Ctrl+C
-    signal.signal(signal.SIGINT, signal_handler)
-
+    # signal.signal(signal.SIGINT, signal_handler)
+        
     print('Listening... Press Ctrl+C to exit')
-
     # main loop
     detector.start(detected_callback=hotWordCallback,
                    interrupt_check=interrupt_callback,
-                   sleep_time=0.03)    
+                   sleep_time=0.03)
+    
 
 def main():
-    AMQPClient = amqp.hyperAMQPClient()
-    AMQPTopic = AMQPClient.topicGenerator("000AE22F0031", "0001", "lightManager", "sub")
-    AMQPClient.declareTopic(AMQPTopic)
-    AMQPClient.publishMessage(AMQPTopic, "Hello Hyper")
-    while 1:
-        global state
-        if state == "Sleep":
-            hotWordDetect()
-        else:
-            while 1:
-                parsedAction = voice2JSONProcess()
-                if (parsedAction == -1):
-                    break
-                if (parsedAction == "smalltalk.greetings.bye"):
-                    break
-                # else:
-                    # assignAction(parsedAction)
-            state = "Sleep"
+    try:
+        
+        AMQPClient = amqp.hyperAMQPClient()
+        AMQPTopic = AMQPClient.topicGenerator("000AE22F0031", "0001", "lightManager", "sub")
+        print(AMQPTopic)
+        AMQPClient.declareTopic(AMQPTopic)
+        AMQPClient.publishMessage(AMQPTopic, "Hello Hyper")
+        while True:
+            global state
+            if state == "Sleep":
+                state = "Pause"
+                hotWordDetect()
+            elif state == "Run":
+                while True:
+                    parsedAction = voice2JSONProcess()
+                    if (parsedAction == -1):
+                        break
+                    if (parsedAction == "smalltalk.greetings.bye"):
+                        break
+                    # else:
+                        # assignAction(parsedAction)
+                state = "Sleep"
+            # elif state == "Pause":
+                # time.sleep(1)
+    except Exception as e:
+        print(type(e))
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Interrupted')
+        signal_handler()
+        try:
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)
+        exit()
+    except Exception as e:
+        traceback.print_exc(file=sys.stdout)
+        print(type(e))
+    
     
         
