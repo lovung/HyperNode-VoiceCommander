@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import multiprocessing as MTP
 from sys import byteorder
 from array import array
 from struct import pack
@@ -7,7 +8,7 @@ from os.path import join, dirname
 # from watson_developer_cloud import SpeechToTextV1
 from transcribe_streaming_mic import speech2Text
 # import snowboy/examples/Python3/snowboydecoder
-import signal
+# import signal
 import json
 import pyaudio
 import wave
@@ -27,24 +28,35 @@ except ImportError:
     import apiai
 
 try:
-    import snowboydecoder
-except ImportError:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "snowboy/examples/Python3"))
-    import snowboydecoder
+    import snowboydecoder as sb
+except ImportError:
+    exitProgram()
 
 try:
-    import amqp_client
-except ImportError:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "utils/AMQP"))
     import amqp_client as amqp
+except ImportError:
+    exitProgram()
+
+try:
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "utils/network"))
+    import wifi_utils
+except ImportError:
+    exitProgram()
+
+
+
 
 CLIENT_ACCESS_TOKEN = '587dba5ac7de45b3a05b7901a04f5b2e'
 
 TOP_DIR = os.path.dirname(os.path.abspath(__file__))
 interrupted = False
 model = os.path.join(TOP_DIR, "models/Hyper.pmdl")
-detector = snowboydecoder.HotwordDetector(model, sensitivity=0.6)
+detector = sb.HotwordDetector(model, sensitivity=0.6)
 state = "Sleep";
+OMEGA2P_MAC_ADDRESS = "40A36BC02DAF"
+HOST_MAC_ADDRESS = wifi_utils.getMACString()
 
 # speech_to_text = SpeechToTextV1(
 #     username='bdc32f14-9895-419b-8ad2-dd6030248aad',
@@ -56,6 +68,13 @@ state = "Sleep";
 
 # print(json.dumps(speech_to_text.get_model('en-US_BroadbandModel'), indent=2))
 
+
+def exitProgram():
+    try:
+        sys.exit(0)
+    except SystemExit:
+        os._exit(0)
+    exit()
 
 def apiaiPGetResponse(transcript):
     ai = apiai.ApiAI(CLIENT_ACCESS_TOKEN)
@@ -94,35 +113,8 @@ def voice2JSONProcess():
         print("Null api results")
         return -1
 
-    # Use Watson API.
-
-    # with open(join(dirname(__file__), 'demo.wav'),
-    #           'rb') as audio_file:
-    #     json_data = json.dumps(speech_to_text.recognize(
-    #         audio_file, content_type='audio/wav', timestamps=True,
-    #         word_confidence=True),
-    #         indent=2)
-    #     json_data = json.loads(json_data)
-    #     if json_data["results"]:
-    #         transcript = json_data["results"][0][
-    #             "alternatives"][0]["transcript"]
-    #         print("Transcript")
-    #         print(transcript)
-    #         apiaiResponse = apiaiPGetResponse(transcript)
-    #         print(apiaiResponse)
-    #         apiaiResponse = json.loads(apiaiResponse)
-    #         if apiaiResponse["result"]:
-    #             print(apiaiResponse["result"]["action"])
-    #             print(apiaiResponse["result"]["fulfillment"]["speech"])
-    #             print(apiaiResponse["result"]["fulfillment"][
-    #                   "messages"][0]["speech"])
-    #         else:
-    #             print("Null api results")
-    #     else:
-    #         print("Null watson results")
-
 def hotWordCallback():
-    snowboydecoder.play_audio_file()
+    sb.play_audio_file()
     print("Terminate hotWordDetect")
     detector.terminate()
     time.sleep(0.3)
@@ -146,16 +138,8 @@ def hotWordDetect(modelPath=model):
     detector.start(detected_callback=hotWordCallback,
                    interrupt_check=interrupt_callback,
                    sleep_time=0.03)
-    
-
-def main():
-    try:
-        
-        AMQPClient = amqp.hyperAMQPClient()
-        AMQPTopic = AMQPClient.topicGenerator("000AE22F0031", "0001", "lightManager", "sub")
-        print(AMQPTopic)
-        AMQPClient.declareTopic(AMQPTopic)
-        AMQPClient.publishMessage(AMQPTopic, "Hello Hyper")
+def voiceProcess():
+    try:        
         while True:
             global state
             if state == "Sleep":
@@ -171,8 +155,39 @@ def main():
                     # else:
                         # assignAction(parsedAction)
                 state = "Sleep"
-            # elif state == "Pause":
-                # time.sleep(1)
+            elif state == "Pause":
+                time.sleep(1)
+    except Exception as e:
+        print(type(e))
+
+def AMQPReceiveMessageCallback(ch, method, properties, body):
+
+
+def AMQPProcess(sendQueue, rcvQueue):
+    try:
+        # Connect for sending:
+        AMQPClient = amqp.hyperAMQPClient()
+        AMQPSendTopic_lightManager = AMQPClient.topicGenerator(HOST_MAC_ADDRESS, "0001", "lightManager", "sub")
+        print(AMQPSendTopic_lightManager)
+        AMQPClient.declareTopic(AMQPSendTopic_lightManager)
+
+        # For receiving:
+        AMQPRcvTopic_lightManager = AMQPClient.topicGenerator(HOST_MAC_ADDRESS, "0001", "lightManager", "pub")
+        AMQPClient.declareTopic(AMQPRcvTopic_lightManager)
+        # AMQPClient.publishMessage(AMQPTopic, "Hello Hyper")
+        AMQPClient.startSubcribe(AMQPReceiveMessageCallback, AMQPRcvTopic_lightManager)
+
+    except Exception as e:
+        print(type(e))
+
+def main():
+    try:        
+        # Init queue for sending and receiving:
+        AMQPSendQueue = MTP.Queue()
+        AMQPRcvQueue = MTP.Queue()
+        process1 = MTP.Process(target=AMQPProcess, args=(AMQPSendQueue, AMQPRcvQueue, ))
+        process1.start()
+
     except Exception as e:
         print(type(e))
 

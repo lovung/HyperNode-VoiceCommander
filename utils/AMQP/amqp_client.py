@@ -64,7 +64,7 @@ class hyperAMQPClient(object):
                       body=message)
 
     def startSubcribe(self, received_callback, topic):
-        self.channel.basic_consume(received_callback,
+        self.channel.basic_consume(received_callback=printMessage,
                               queue=topic,
                               no_ack=True)
         print(' [*] Waiting for messages. To exit press CTRL+C')
