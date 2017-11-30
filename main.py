@@ -19,7 +19,7 @@ import os
 import time
 import traceback
 
-TOP_DIR = os.path.dirname(os.path.realpath(__file__)), 
+TOP_DIR = os.path.dirname(os.path.realpath(__file__))
 
 def exitProgram():
     signal_handler()
@@ -68,9 +68,6 @@ def main():
     ManagerJSONQueue = Queue(50)
     AudioQueue = Queue(50)
 
-    amqp_p = Process(target=amqp.AMQPProcess, args=(AMQPSendQueue, AMQPRcvQueue, ManagerJSONQueue, ))
-    amqp_p.start()
-
     logging_p = Process(target=logger.loggingProcess, args=(LoggingQueue, ))
     logging_p.start()
 
@@ -80,9 +77,12 @@ def main():
     audio_p = Process(target=speaker.audioProcess, args=(LoggingQueue, AudioQueue, ))
     audio_p.start()
 
+    # amqp_p = Process(target=amqp.AMQPProcess, args=(LoggingQueue, AMQPSendQueue, AMQPRcvQueue, ))
+    # amqp_p.start()
+
     voice_p.join()
     audio_p.join()
-    amqp_p.join()
+    # amqp_p.join()
     logging_p.join()
     
     # process3 = Process(target=managerProcess, args=(ManagerJSONQueue, ))
