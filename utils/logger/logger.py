@@ -4,7 +4,7 @@ import logging.handlers
 
 def loggingConfigurer():
     root = logging.getLogger()
-    h = logging.handlers.RotatingFileHandler('testLogging.log', 'a', 10*1024*1024, 10)
+    h = logging.handlers.RotatingFileHandler('log/testLogging.log', 'a', 10*1024*1024, 10)
     f = logging.Formatter('%(asctime)s %(name)-15s %(levelname)-8s %(message)s')
     h.setFormatter(f)
     root.addHandler(h)
@@ -13,7 +13,7 @@ def loggerInit(queue):
     h = logging.handlers.QueueHandler(queue)  # Just the one handler needed
     root = logging.getLogger()
     root.addHandler(h)
-    root.setLevel(logging.INFO)
+    root.setLevel(logging.DEBUG)
     processName = multiprocessing.current_process().name
     logger = logging.getLogger(processName)
     return logger

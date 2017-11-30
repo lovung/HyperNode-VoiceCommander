@@ -4,6 +4,8 @@ from transcribe_streaming_mic import speech2Text
 import pyaudio
 import time
 import json 
+import os.path
+import logging
 
 TOP_DIR = os.path.join(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir), os.pardir)
 UTILS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir)
@@ -110,21 +112,22 @@ def voiceProcess(log_q, mng_q, aud_q):
             logger.log(logging.INFO, "Voice is detected")
             [action, actionIncomplete, score, parameters, speechScript, speechScript2] = voice2JSON()
             logger.log(logging.INFO, "Action: " + action)
-            logger.log(logging.DEBUG, "actionIncomplete: " + actionIncomplete)
-            logger.log(logging.DEBUG, "score: " + score)
-            logger.log(logging.DEBUG, "parameters: " + parameters)
+            logger.log(logging.DEBUG, "actionIncomplete: " + str(actionIncomplete))
+            logger.log(logging.DEBUG, "score: " + str(score))
+            logger.log(logging.DEBUG, "parameters: " + str(parameters))
             logger.log(logging.DEBUG, "speechScript: " + speechScript)
             logger.log(logging.DEBUG, "speechScript2: " + speechScript2)
             if (action == -1 or action == "smalltalk.greetings.bye"):
-                aud_q.put(jsonSimpleGenerate("speech", speechScript))
+                aud_q.put(json_utils.jsonSimpleGenerate("speech", speechScript))
                 state = "Sleep"
                 continue
             if (score < 0.5 or actionIncomplete == 'true' or not(speechScript)):
                 try:
-                    aud_q.put_nowait(jsonSimpleGenerate("speech", "I am not sure to understand what you mean. Can you repeat or explain more?"))
+                    aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", "I am not sure to understand what you mean. Can you repeat or explain more?"))
                     # mng_q.put_nowait(jsonSimpleGenerate("action", action))
                     continue
                 except Exception as e:
+                    logger.log(logging.WARNING, "Action is not complete or score is low")
                     state = "Sleep"
                     continue
             else:
@@ -133,15 +136,17 @@ def voiceProcess(log_q, mng_q, aud_q):
                     if not aud_q.full():
                         if (speechScript and speechScript != -1):
                             logger.log(logging.DEBUG, "Put script to AudioQueue")
-                            aud_q.put_nowait(jsonSimpleGenerate("speech", speechScript))
+                            aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", speechScript))
                         if (speechScript2 and speechScript2 != -1 and speechScript != speechScript2):
                             time.sleep(1)
                             logger.log(logging.DEBUG, "Put script to AudioQueue")
-                            aud_q.put_nowait(jsonSimpleGenerate("speech", speechScript2))
+                            aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", speechScript2))
                     else:
+                        logger.log(logging.WARNING, "Audio queue is full")
                         state = "Sleep"
                         continue    
                 except Exception as e:
+                    logger.log(logging.WARNING, str(type(e)))
                     state = "Sleep"
                     continue
         elif state == "Pause":

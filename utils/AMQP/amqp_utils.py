@@ -1,3 +1,5 @@
+import sys
+import os.path
 import logging
 import json
 
@@ -19,14 +21,14 @@ try:
     sys.path.insert(0, os.path.join(UTILS_DIR, "logger"))
     import logger as log
 except ImportError:
-    exitProgram()
+    exit()
 
 try:
     sys.path.insert(0, os.path.join(UTILS_DIR, "audio"))
     import microphone
     import speaker
 except ImportError:
-    exitProgram()
+    exit()
 
 OMEGA2P_MAC_ADDRESS = "40a36bc02daf"
 HOST_MAC_ADDRESS = wifi_utils.getMACString()
@@ -35,12 +37,12 @@ ALL_TASKS = ['lightManager','musicManager','timeManager','answerCenter']
 def AMQPReceiveMessageCallback(ch, method, properties, body):
     print("Receive: %s" % body.decode('utf-8'))
 
-def AMQPProcess(sendQueue, rcvQueue):
+def AMQPProcess(log_q, send_q, rcv_q):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "AMQPProcess is started")
     # Connect for sending:
     AMQPClient = amqp.hyperAMQPClient()
-    # AMQPSendTopic_lightManager = AMQPClient.topicGenerator(HOST_MAC_ADDRESS, "0001", "lightManager", "sub")
+    AMQPSendTopic_lightManager = AMQPClient.topicGenerator(HOST_MAC_ADDRESS, "0001", "lightManager", "sub")
     logger.log(logging.DEBUG, AMQPSendTopic_lightManager)
     AMQPClient.declareTopic(AMQPSendTopic_lightManager)
 
@@ -52,7 +54,7 @@ def AMQPProcess(sendQueue, rcvQueue):
 
     while True:
         try:
-            jsonStr = sendQueue.get_nowait()
+            jsonStr = send_q.get_nowait()
             jsonStr = json.loads(jsonStr)
 
             AMQPClient.publishMessage(routing_key=AMQPSendTopic_lightManager)

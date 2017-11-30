@@ -1,6 +1,10 @@
+import sys
+from os.path import join, dirname
 from gtts import gTTS
 import logging
 import json
+import time
+import os.path
 
 TOP_DIR = os.path.join(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir), os.pardir)
 UTILS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir)
@@ -15,14 +19,14 @@ except ImportError:
 AGENT_NAME = "Hyper"
 
 
-def speakerProcess(log_q, speaker_q):
+def audioProcess(log_q, audio_q):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "audioProcess is started")
     
     while True:
         time.sleep(1)
         try:
-            jsonStr = speaker_q.get(True,1)
+            jsonStr = audio_q.get_nowait()
             logger.log(logging.DEBUG, "JSON: "+ jsonStr)
             jsonStr = json.loads(jsonStr)
         
@@ -32,4 +36,5 @@ def speakerProcess(log_q, speaker_q):
                 tts.save("speech.mp3")
                 os.system("mpg321 speech.mp3")
         except Exception as e:
+            print('.', end='', flush=True)
             pass
