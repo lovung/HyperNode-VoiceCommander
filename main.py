@@ -54,6 +54,12 @@ try:
 except ImportError:
     exitProgram()
 
+try:
+    sys.path.insert(0, os.path.join(TOP_DIR, "utils/AirPurifier"))
+    import air_purifier
+except ImportError:
+    exitProgram()
+
 
 
 # def testQueue(AudioQueue):
@@ -68,25 +74,31 @@ def main():
     ManagerJSONQueue = Queue(50)
     AudioQueue = Queue(50)
 
+
+    Command_q = Queue(1024)
+    print("Start")
     logging_p = Process(target=logger.loggingProcess, args=(LoggingQueue, ))
     logging_p.start()
 
-    voice_p = Process(target=microphone.voiceProcess, args=(LoggingQueue, ManagerJSONQueue, AudioQueue, ))
-    voice_p.start()
+    # voice_p = Process(target=microphone.voiceProcess, args=(LoggingQueue, ManagerJSONQueue, AudioQueue, ))
+    # voice_p.start()
     
-    audio_p = Process(target=speaker.audioProcess, args=(LoggingQueue, AudioQueue, ))
-    audio_p.start()
+    # audio_p = Process(target=speaker.audioProcess, args=(LoggingQueue, AudioQueue, ))
+    # audio_p.start()
+
+    airPurifier_p = Process(target=air_purifier.AirPurifierProcess, args=(LoggingQueue, AudioQueue, Command_q))
+    airPurifier_p.start()
 
     # amqp_p = Process(target=amqp.AMQPProcess, args=(LoggingQueue, AMQPSendQueue, AMQPRcvQueue, ))
     # amqp_p.start()
 
-    voice_p.join()
-    audio_p.join()
+    # voice_p.join()
+    # audio_p.join()
+    airPurifier_p.join()
     # amqp_p.join()
     logging_p.join()
     
-    # process3 = Process(target=managerProcess, args=(ManagerJSONQueue, ))
-    # process3.start()
+    
 
 
 if __name__ == '__main__':
