@@ -8,10 +8,6 @@ from sys import byteorder
 from array import array
 from struct import pack
 from os.path import join, dirname
-# from watson_developer_cloud import SpeechToTextV1
-# import snowboy/examples/Python3/snowboydecoder
-# import signal
-
 import wave
 import os.path
 import sys
@@ -54,8 +50,6 @@ try:
 except ImportError:
     exitProgram()
 
-
-
 # def testQueue(AudioQueue):
 #     print("Put script to AudioQueue")
 #     AudioQueue.put(jsonSimpleGenerate("speech", "Hello"))
@@ -65,28 +59,45 @@ def main():
     LoggingQueue = Queue(1024)
     AMQPSendQueue = Queue(1024)
     AMQPRcvQueue = Queue(1024)
-    ManagerJSONQueue = Queue(50)
-    AudioQueue = Queue(50)
+    CommandQueue = Queue(1024)
+    ActionQueue = Queue(1024)
+    AudioQueue = Queue(1024)
 
     logging_p = Process(target=logger.loggingProcess, args=(LoggingQueue, ))
     logging_p.start()
 
-    voice_p = Process(target=microphone.voiceProcess, args=(LoggingQueue, ManagerJSONQueue, AudioQueue, ))
-    voice_p.start()
-    
-    audio_p = Process(target=speaker.audioProcess, args=(LoggingQueue, AudioQueue, ))
+    amqp_p = Process(target=amqp.AMQPProcess, args=(LoggingQueue, AMQPSendQueue, AMQPRcvQueue, CommandQueue, ))
+    amqp_p.start()
+
+    action_p = Process(target=action.ActionManagerProcess, args=(LoggingQueue, ActionQueue, CommandQueue, ))
+    action_p.start()
+
+    status_p = Process(target=status.StatusProcess, args=(LoggingQueue, AMQPSendQueue, CommandQueue, ))
+    status_p.start()
+
+    audio_p = Process(target=speaker.audioProcess, args=(LoggingQueue, AudioQueue, CommandQueue, ))
     audio_p.start()
 
-    # amqp_p = Process(target=amqp.AMQPProcess, args=(LoggingQueue, AMQPSendQueue, AMQPRcvQueue, ))
-    # amqp_p.start()
+    voice_p = Process(target=microphone.voiceProcess, args=(LoggingQueue, ActionQueue, AudioQueue, CommandQueue, ))
+    voice_p.start()
+
+    music_p = Process(target=music.MusicProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
+    music_p.start()
+
+    timer_p = Process(target=timer.TimerProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
+    timer_p.start()
+
+    light_p = Process(target=light.LightProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
+    light_p.start()
+
 
     voice_p.join()
     audio_p.join()
-    # amqp_p.join()
+    amqp_p.join()
+    # action_p.join()
     logging_p.join()
     
-    # process3 = Process(target=managerProcess, args=(ManagerJSONQueue, ))
-    # process3.start()
+
 
 
 if __name__ == '__main__':
