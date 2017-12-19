@@ -1,5 +1,8 @@
+import os.path
+import sys
 import paho.mqtt.client as mqtt
 import ssl
+import logging
 
 TOP_DIR = os.path.join(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir), os.pardir)
 try:
@@ -8,10 +11,10 @@ try:
 except ImportError:
     exit()
 
-
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
+
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
@@ -45,6 +48,7 @@ class hyperMQTTClient(object):
             self.client.on_disconnect = disconnect_cb
             self.subscribe_list = []
             self.broadcastTopic = []
+            self.is_connected = 0
             self.logger.log(logging.INFO, "Created MQTT client")
         except Exception as e:
             logger.log(logging.ERROR, "Can not init MQTT client!")
@@ -53,6 +57,9 @@ class hyperMQTTClient(object):
                 port=1883,
                 kal_interval = 20):
         try:
+            # self.host = host
+            # self.port = port
+            # self.kal_interval = kal_interval
             self.client.connect(host, port, kal_interval)
         except Exception as e:
             self.logger.log(logging.ERROR, "Can not connect to MQTT server!")
@@ -67,14 +74,14 @@ class hyperMQTTClient(object):
             self.client.subscribe(topic, qos=qos)
             self.subscribe_list.append(topic)
         except Exception as e:
-            self.logger.log(logging.ERROR, "Can not subcribe to MQTT topic!")
+            self.logger.log(logging.ERROR, "Can not subscribe to MQTT topic!")
 
-    def unsubcribe(self, topic):
+    def unsubscribe(self, topic):
         try:
             self.client.unsubscribe(topic)
             self.subscribe_list.remove(topic)
         except Exception as e:
-            self.logger.log(logging.ERROR, "Can not unsubcribe to MQTT topic!")
+            self.logger.log(logging.ERROR, "Can not unsubscribe to MQTT topic!")
 
     def add_broadcast(self, topic):
         try:
@@ -113,84 +120,84 @@ class hyperMQTTClient(object):
         except Exception as e:
             self.logger.log(logging.ERROR, "Can not loop forever!")
 
-class hyperMQTTClient_TSL(object):
-    def __init__(self, log_q):
-        try:
-            self.logger = log.loggerInit(log_q)
-        except Exception as e:
-            raise e
-        try:
-            self.client = mqtt.Client()
-            self.client.on_connect = on_connect
-            self.client.on_message = on_message
-            self.client.on_publish = on_publish
-            self.client.on_disconnect = on_disconnect
-            self.subscribe_list = []
-            self.broadcastTopic = []
-            self.logger.log(logging.INFO, "Created MQTT client")
-        except Exception as e:
-            logger.log(logging.ERROR, "Can not init MQTT client!")
+# class hyperMQTTClient_TSL(object):
+#     def __init__(self, log_q):
+#         try:
+#             self.logger = log.loggerInit(log_q)
+#         except Exception as e:
+#             raise e
+#         try:
+#             self.client = mqtt.Client()
+#             self.client.on_connect = on_connect
+#             self.client.on_message = on_message
+#             self.client.on_publish = on_publish
+#             self.client.on_disconnect = on_disconnect
+#             self.subscribe_list = []
+#             self.broadcastTopic = []
+#             self.logger.log(logging.INFO, "Created MQTT client")
+#         except Exception as e:
+#             logger.log(logging.ERROR, "Can not init MQTT client!")
 
-    def connect(self, host="mqtt-iot.hubble.in",
-                port=1883,
-                kal_interval = 20):
-        try:
-            self.client.connect(host, port, kal_interval)
-        except Exception as e:
-            self.logger.log(logging.ERROR, "Can not connect to MQTT server!")
+#     def connect(self, host="mqtt-iot.hubble.in",
+#                 port=1883,
+#                 kal_interval = 20):
+#         try:
+#             self.client.connect(host, port, kal_interval)
+#         except Exception as e:
+#             self.logger.log(logging.ERROR, "Can not connect to MQTT server!")
 
-    def subscribe(self, topic, qos = 1):
-        try:
-            # Subscribing in on_connect() means that if we lose the connection and
-            # reconnect then subscriptions will be renewed.
-            # client.subscribe("$SYS/#")
-            # client.subscribe(airPurifier_pub_topic, qos=1)
-            # client.subscribe(mbp162_pub_topic, qos=1)
-            self.client.subscribe(topic, qos=qos)
-            self.subscribe_list.append(topic)
-        except Exception as e:
-            self.logger.log(logging.ERROR, "Can not subcribe to MQTT topic!")
+#     def subscribe(self, topic, qos = 1):
+#         try:
+#             # Subscribing in on_connect() means that if we lose the connection and
+#             # reconnect then subscriptions will be renewed.
+#             # client.subscribe("$SYS/#")
+#             # client.subscribe(airPurifier_pub_topic, qos=1)
+#             # client.subscribe(mbp162_pub_topic, qos=1)
+#             self.client.subscribe(topic, qos=qos)
+#             self.subscribe_list.append(topic)
+#         except Exception as e:
+#             self.logger.log(logging.ERROR, "Can not subscribe to MQTT topic!")
 
-    def unsubcribe(self, topic):
-        try:
-            self.client.unsubscribe(topic)
-            self.subscribe_list.remove(topic)
-        except Exception as e:
-            self.logger.log(logging.ERROR, "Can not unsubcribe to MQTT topic!")
+#     def unsubscribe(self, topic):
+#         try:
+#             self.client.unsubscribe(topic)
+#             self.subscribe_list.remove(topic)
+#         except Exception as e:
+#             self.logger.log(logging.ERROR, "Can not unsubscribe to MQTT topic!")
 
-    def add_broadcast(self, topic):
-        try:
-            self.broadcastTopic.append(topic)
-        except Exception as e:
-            self.logger.log(logging.ERROR, "Can not add topic to broadcast list!")
+#     def add_broadcast(self, topic):
+#         try:
+#             self.broadcastTopic.append(topic)
+#         except Exception as e:
+#             self.logger.log(logging.ERROR, "Can not add topic to broadcast list!")
 
-    def remove_broadcast(self, topic):
-        try:
-            self.broadcastTopic.remove(topic)
-        except ValueError:
-            self.logger.log(logging.ERROR, "Can not remove topic to broadcast list! - ValueError")
-        except Exception as e:
-            self.logger.log(logging.ERROR, "Can not remove topic to broadcast list!")
+#     def remove_broadcast(self, topic):
+#         try:
+#             self.broadcastTopic.remove(topic)
+#         except ValueError:
+#             self.logger.log(logging.ERROR, "Can not remove topic to broadcast list! - ValueError")
+#         except Exception as e:
+#             self.logger.log(logging.ERROR, "Can not remove topic to broadcast list!")
 
-    def publish(self, topic, message):
-        try:
-            self.client.publish(topic, payload=message)
-        except Exception as e:
-            self.logger.log(logging.ERROR, "Can not publish!")
+#     def publish(self, topic, message):
+#         try:
+#             self.client.publish(topic, payload=message)
+#         except Exception as e:
+#             self.logger.log(logging.ERROR, "Can not publish!")
 
-    def broadcast(self, message):
-        try:
-            for topic in self.broadcastTopic:
-                self.client.publish(topic, payload=message)
-        except Exception as e:
-            self.logger.log(logging.ERROR, "Can not broadcast!")
+#     def broadcast(self, message):
+#         try:
+#             for topic in self.broadcastTopic:
+#                 self.client.publish(topic, payload=message)
+#         except Exception as e:
+#             self.logger.log(logging.ERROR, "Can not broadcast!")
 
-    def loop_forever(self):
-        try:
-            # Blocking call that processes network traffic, dispatches callbacks and
-            # handles reconnecting.
-            # Other loop*() functions are available that give a threaded interface and a
-            # manual interface.
-            self.client.loop_forever()
-        except Exception as e:
-            self.logger.log(logging.ERROR, "Can not loop forever!")
+#     def loop_forever(self):
+#         try:
+#             # Blocking call that processes network traffic, dispatches callbacks and
+#             # handles reconnecting.
+#             # Other loop*() functions are available that give a threaded interface and a
+#             # manual interface.
+#             self.client.loop_forever()
+#         except Exception as e:
+#             self.logger.log(logging.ERROR, "Can not loop forever!")

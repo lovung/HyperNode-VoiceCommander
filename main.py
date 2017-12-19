@@ -58,6 +58,7 @@ try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/AirPurifier"))
     import air_purifier
 except ImportError:
+    print("Import failed")
     exitProgram()
 
 
