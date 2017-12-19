@@ -37,20 +37,20 @@ ALL_TASKS = ['lightManager','musicManager','timeManager','answerCenter']
 def AMQPReceiveMessageCallback(ch, method, properties, body):
     print("Receive: %s" % body.decode('utf-8'))
 
-def AMQPProcess(log_q, send_q, rcv_q):
+def AMQPProcess(log_q, send_q, rcv_q, cmd_q):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "AMQPProcess is started")
-    # Connect for sending:
-    AMQPClient = amqp.hyperAMQPClient()
-    AMQPSendTopic_lightManager = AMQPClient.topicGenerator(HOST_MAC_ADDRESS, "0001", "lightManager", "sub")
-    logger.log(logging.DEBUG, AMQPSendTopic_lightManager)
-    AMQPClient.declareTopic(AMQPSendTopic_lightManager)
+    for task in ALL_TASKS:
+        # Connect for sending:
+        AMQPClient = amqp.hyperAMQPClient()
+        AMQPSendTopic_lightManager = AMQPClient.topicGenerator(HOST_MAC_ADDRESS, "0001", task, "sub")
+        logger.log(logging.DEBUG, AMQPSendTopic_lightManager)
+        AMQPClient.declareTopic(AMQPSendTopic_lightManager)
 
-    # For receiving:
-    AMQPRcvTopic_lightManager = AMQPClient.topicGenerator(HOST_MAC_ADDRESS, "0001", "lightManager", "pub")
-    AMQPClient.declareTopic(AMQPRcvTopic_lightManager)
-    # AMQPClient.publishMessage(AMQPTopic, "Hello Hyper")
-    AMQPClient.startSubcribe(AMQPReceiveMessageCallback, AMQPRcvTopic_lightManager)
+        # For receiving:
+        AMQPRcvTopic_lightManager = AMQPClient.topicGenerator(HOST_MAC_ADDRESS, "0001", task, "pub")
+        AMQPClient.declareTopic(AMQPRcvTopic_lightManager)
+        AMQPClient.startSubcribe(AMQPReceiveMessageCallback, AMQPRcvTopic_lightManager)
 
     while True:
         try:

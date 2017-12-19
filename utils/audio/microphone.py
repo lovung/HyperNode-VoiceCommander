@@ -100,7 +100,7 @@ def voice2JSON():
         return -1, -1, -1, -1, -1, -1
 
 
-def voiceProcess(log_q, mng_q, aud_q):
+def voiceProcess(log_q, action_q, aud_q, cmd_q):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "voiceProcess is started")
     while True:

@@ -19,7 +19,7 @@ except ImportError:
 AGENT_NAME = "Hyper"
 
 
-def audioProcess(log_q, audio_q):
+def audioProcess(log_q, audio_q, cmd_q):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "audioProcess is started")
     
