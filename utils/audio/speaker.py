@@ -12,7 +12,12 @@ UTILS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir)
 try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/logger"))
     import logger as log
+except ImportError:
+    exitProgram()
 
+try:
+    sys.path.insert(0, os.path.join(TOP_DIR, "utils/JSON"))
+    import json_utils
 except ImportError:
     exitProgram()
 
@@ -28,9 +33,8 @@ def audioProcess(log_q, audio_q, cmd_q):
         try:
             jsonStr = audio_q.get_nowait()
             logger.log(logging.DEBUG, "JSON: "+ jsonStr)
-            jsonStr = json.loads(jsonStr)
-        
-            if jsonStr["speech"]:
+            speech = json_utils.jsonSimpleParsor(jsonStr, "speech")
+            if (speech != -1):
                 logger.log(logging.INFO, AGENT_NAME + ":" + jsonStr["speech"])
                 tts = gTTS(text=jsonStr["speech"], lang='en')
                 tts.save("speech.mp3")

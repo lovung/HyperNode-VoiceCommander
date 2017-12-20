@@ -124,7 +124,7 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
             if (score < 0.5 or actionIncomplete == 'true' or not(speechScript)):
                 try:
                     aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", "I am not sure to understand what you mean. Can you repeat or explain more?"))
-                    # mng_q.put_nowait(jsonSimpleGenerate("action", action))
+                    action_q.put_nowait(jsonSimpleGenerate("action", action))
                     continue
                 except Exception as e:
                     logger.log(logging.WARNING, "Action is not complete or score is low")

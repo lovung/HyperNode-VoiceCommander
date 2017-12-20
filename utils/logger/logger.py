@@ -13,7 +13,7 @@ def loggerInit(queue):
     h = logging.handlers.QueueHandler(queue)  # Just the one handler needed
     root = logging.getLogger()
     root.addHandler(h)
-    root.setLevel(logging.DEBUG)
+    root.setLevel(logging.INFO)
     processName = multiprocessing.current_process().name
     logger = logging.getLogger(processName)
     return logger

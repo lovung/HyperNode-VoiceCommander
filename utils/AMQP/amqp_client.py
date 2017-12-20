@@ -53,7 +53,7 @@ class hyperAMQPClient(object):
         elif len(hex(key)[2:]) == 3:
             strKey = mac_address[8] + mac_address[9] + hex(key)[2:]
         # print("key = %x" % key)
-        retStr = strKey + '.' + model + '.' + task + '.' + method
+        retStr = strKey + '/' + model + '/' + task + '/' + method
         return retStr
 
 

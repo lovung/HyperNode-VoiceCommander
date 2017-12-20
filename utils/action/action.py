@@ -23,3 +23,45 @@ try:
 except ImportError:
     exit()
 
+
+actionStatusList = ["check"]
+actionTimerList = ["alarm", "time"]
+actionLightList = ["smarthome.lights", "lights"]
+actionMusicList = ["music", "music_player_control"]
+actionHumidifierList = ["smarthome.humidity"]
+actionList = [actionStatusList, actionTimerList, actionLightList, actionMusicList, actionHumidifierList]
+processName = ["status", "timer", "light", "music", "humidifier"]
+
+def ActionManagerProcess(log_q, action_q, cmd_q):
+    try:
+        logger = log.loggerInit(log_q)
+    except Exception as e:
+        print("Create logger failed")
+        exit()
+
+    try:
+        logger.log(logging.INFO, "Action Manager Process is started")
+        while True:
+            action = action_q.get()
+            # action = "{\"action\":\"smarthome.lights.switch.on\"}"
+            if action is None:
+                # continue
+                pass
+            else:
+                action = json_utils.jsonSimpleParsor(action, "action")
+                gotIt = False
+                for index, item in enumerate(actionList):
+                    for i in item:
+                        if (str.find(action,i) >= 0):
+                            gotIt = True
+                            break
+                    if gotIt is True:
+                        break
+                if gotIt is True:
+                    print("Index = " + str(index))
+                    
+                else:
+                    print("Not found")
+    except Exception as e:
+        logger.log(logging.ERROR, "Failed to create custom metric: exception={})".format(e))
+        raise e

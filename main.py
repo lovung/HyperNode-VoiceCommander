@@ -38,6 +38,12 @@ except ImportError:
     exitProgram()
 
 try:
+    sys.path.insert(0, os.path.join(TOP_DIR, "utils/action"))
+    import action
+except ImportError:
+    exitProgram()
+
+try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/network"))
     import wifi_utils
 except ImportError:
@@ -51,8 +57,9 @@ except ImportError:
     exitProgram()
 
 try:
-    sys.path.insert(0, os.path.join(TOP_DIR, "utils/AirPurifier"))
+    sys.path.insert(0, os.path.join(TOP_DIR, "utils/IoT_devices"))
     import air_purifier
+    import humidifier
 except ImportError:
     print("Import failed")
     exitProgram()
@@ -75,14 +82,14 @@ def main():
     logging_p = Process(target=logger.loggingProcess, args=(LoggingQueue, ))
     logging_p.start()
 
-    amqp_p = Process(target=amqp.AMQPProcess, args=(LoggingQueue, AMQPSendQueue, AMQPRcvQueue, CommandQueue, ))
-    amqp_p.start()
+    # amqp_p = Process(target=amqp.AMQPProcess, args=(LoggingQueue, AMQPSendQueue, AMQPRcvQueue, CommandQueue, ))
+    # amqp_p.start()
 
     action_p = Process(target=action.ActionManagerProcess, args=(LoggingQueue, ActionQueue, CommandQueue, ))
     action_p.start()
 
-    status_p = Process(target=status.StatusProcess, args=(LoggingQueue, AMQPSendQueue, CommandQueue, ))
-    status_p.start()
+    # status_p = Process(target=status.StatusProcess, args=(LoggingQueue, AMQPSendQueue, CommandQueue, ))
+    # status_p.start()
 
     audio_p = Process(target=speaker.audioProcess, args=(LoggingQueue, AudioQueue, CommandQueue, ))
     audio_p.start()
@@ -90,23 +97,26 @@ def main():
     voice_p = Process(target=microphone.voiceProcess, args=(LoggingQueue, ActionQueue, AudioQueue, CommandQueue, ))
     voice_p.start()
 
-    music_p = Process(target=music.MusicProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
-    music_p.start()
+    # music_p = Process(target=music.MusicProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
+    # music_p.start()
 
-    timer_p = Process(target=timer.TimerProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
-    timer_p.start()
+    # timer_p = Process(target=timer.TimerProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
+    # timer_p.start()
 
-    light_p = Process(target=light.LightProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
-    light_p.start()
+    # light_p = Process(target=light.LightProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
+    # light_p.start()
 
-    airPurifier_p = Process(target=air_purifier.AirPurifierProcess, args=(LoggingQueue, AudioQueue, Command_q))
-    airPurifier_p.start()
+    # airPurifier_p = Process(target=air_purifier.AirPurifierProcess, args=(LoggingQueue, AudioQueue, Command_q))
+    # airPurifier_p.start()
+
+    # humidifier_p = Process(target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, Command_q))
+    # humidifier_p.start()
 
     voice_p.join()
     audio_p.join()
-    amqp_p.join()
-    airPurifier_p.join()
-    # action_p.join()
+    # amqp_p.join()
+    # airPurifier_p.join()
+    action_p.join()
     logging_p.join()
 
 if __name__ == '__main__':
