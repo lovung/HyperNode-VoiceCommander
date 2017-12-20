@@ -48,18 +48,21 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
                 # continue
                 pass
             else:
-                action = json_utils.jsonSimpleParsor(action, "action")
+                actionStr = json_utils.jsonSimpleParsor(action, "action")
                 gotIt = False
                 for index, item in enumerate(actionList):
                     for i in item:
-                        if (str.find(action,i) >= 0):
+                        if (str.find(actionStr,i) >= 0):
                             gotIt = True
                             break
                     if gotIt is True:
                         break
                 if gotIt is True:
-                    print("Index = " + str(index))
-                    
+                    processTarget = processName[index]
+                    logger.log(logging.DEBUG, "Process Taiget: " + processTarget)
+                    cmdStr = "{"+json_utils.jsonSimpleGenerate("des",processTarget)+",\n"+action+"}"
+                    logger.log(logging.DEBUG, "Cmd Str: " + cmdStr)
+                    cmd_q.put_nowait(cmdStr)
                 else:
                     print("Not found")
     except Exception as e:
