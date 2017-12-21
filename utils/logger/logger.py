@@ -1,10 +1,12 @@
 import multiprocessing
 import logging
 import logging.handlers
+from datetime import datetime
 
 def loggingConfigurer():
     root = logging.getLogger()
-    h = logging.handlers.RotatingFileHandler('log/testLogging.log', 'a', 10*1024*1024, 10)
+    logFileName = "log/runlog" + datetime.now().strftime('%Y.%m.%d-%H.%M.%S')+".log"
+    h = logging.handlers.RotatingFileHandler(logFileName, 'a', 10*1024*1024, 10)
     f = logging.Formatter('%(asctime)s %(name)-15s %(levelname)-8s %(message)s')
     h.setFormatter(f)
     root.addHandler(h)
