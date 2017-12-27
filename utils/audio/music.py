@@ -76,13 +76,15 @@ def youtubeLoadandPlay(videoID):
 
 def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q):
     logger = log.loggerInit(log_q)
-    logger.log(logging.INFO, "Musicc proccess is started")
+    logger.log(logging.INFO, "Music proccess is started")
 
     while True:
         time.sleep(1)
         try:
             command = cmd_q.get_nowait()
             logger.log(logging.DEBUG, "Command: " + command)
+            if json_utils.jsonSimpleParser(command, "des") == "music":
+                pass
             
 
 

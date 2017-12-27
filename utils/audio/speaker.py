@@ -40,7 +40,7 @@ def audioProcess(log_q, audio_q, cmd_q):
             #    tts.save("speech.mp3")
             #    os.system("mpg321 speech.mp3")
 
-            speech = json_utils.jsonSimpleParsor(jsonStr, "speech")
+            speech = json_utils.jsonSimpleParser(jsonStr, "speech")
             print(speech)
             if speech is -1:
                 logger.log(logging.ERROR, "JSON parse failed")

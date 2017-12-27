@@ -103,40 +103,36 @@ def voice2JSON():
 def voiceProcess(log_q, action_q, aud_q, cmd_q):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "voiceProcess is started")
-    while True:
-        global state
-        if state == "Sleep":
-            state = "Pause"
-            hotWordDetect()
-        elif state == "Run":
-            logger.log(logging.INFO, "Voice is detected")
-            [action, actionIncomplete, score, parameters, speechScript, speechScript2] = voice2JSON()
-            logger.log(logging.INFO, "Action: " + action)
-            logger.log(logging.DEBUG, "actionIncomplete: " + str(actionIncomplete))
-            logger.log(logging.DEBUG, "score: " + str(score))
-            logger.log(logging.DEBUG, "parameters: " + str(parameters))
-            logger.log(logging.DEBUG, "speechScript: " + speechScript)
-            logger.log(logging.DEBUG, "speechScript2: " + speechScript2)
-            if (action == -1 or action == "smalltalk.greetings.bye"):
-                aud_q.put(json_utils.jsonSimpleGenerate("speech", speechScript))
-                state = "Sleep"
-                continue
-            if (score < 0.5 or actionIncomplete == 'true' or actionIncomplete == 'True'): # or not(speechScript)):
-                try:
-                    aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", "I am not sure to understand what you mean. Can you repeat or explain more?"))
-                    action_q.put_nowait(jsonSimpleGenerate("action", action))
+    try:
+        while True:
+            global state
+            if state == "Sleep":
+                state = "Pause"
+                hotWordDetect()
+            elif state == "Run":
+                logger.log(logging.INFO, "Voice is detected")
+                [action, actionIncomplete, score, parameters, speechScript, speechScript2] = voice2JSON()
+                logger.log(logging.INFO, "Action: " + action)
+                logger.log(logging.DEBUG, "actionIncomplete: " + str(actionIncomplete))
+                logger.log(logging.DEBUG, "score: " + str(score))
+                logger.log(logging.DEBUG, "parameters: " + str(parameters))
+                logger.log(logging.DEBUG, "speechScript: " + speechScript)
+                logger.log(logging.DEBUG, "speechScript2: " + speechScript2)
+
+                simpleJSON = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("action",action), json_utils.jsonSimpleGenerate("parameters",parameters))
+                if (action == -1 or action == "smalltalk.greetings.bye"):
+                    aud_q.put(json_utils.jsonSimpleGenerate("speech", speechScript))
+                    state = "Sleep"
                     continue
-                except Exception as e:
-                    logger.log(logging.WARNING, "Action is not complete or score is low")
-                    #state = "Sleep"
-                    continue
-            elif not(speechScript):
-                logger.log(logging.INFO, "Speech script is NULL")
-                action_q.put_nowait(json_utils.jsonSimpleGenerate("action", action))
-                continue
-            else:
-                try:
-                    action_q.put_nowait(json_utils.jsonSimpleGenerate("action", action))
+
+                action_q.put_nowait(simpleJSON)
+                if (score < 0.5 or actionIncomplete == 'true' or actionIncomplete == 'True'): # or not(speechScript)):
+                    logger.log(logging.INFO, "Action is not complete or score is low")
+                    aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", "I am not sure to understand what you mean. Can you repeat, explain or give more information?"))
+                    action_q.put_nowait(simpleJSON)
+                elif not(speechScript):
+                    logger.log(logging.INFO, "Speech script is NULL")
+                else:
                     if not aud_q.full():
                         if (speechScript and speechScript != -1):
                             logger.log(logging.DEBUG, "Put script to AudioQueue and ActionQueue")
@@ -149,9 +145,8 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                         logger.log(logging.WARNING, "Audio queue is full")
                         state = "Sleep"
                         continue    
-                except Exception as e:
-                    logger.log(logging.WARNING, str(type(e)))
-                    state = "Sleep"
-                    continue
-        elif state == "Pause":
-            time.sleep(1)
+            elif state == "Pause":
+                time.sleep(1)
+    except Exception as e:
+        logger.log(logging.ERROR, "Failed to create custom metric: exception={})".format(e))
+        raise e

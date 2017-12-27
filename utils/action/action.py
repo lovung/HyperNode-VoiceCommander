@@ -48,7 +48,7 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
                 # continue
                 pass
             else:
-                actionStr = json_utils.jsonSimpleParsor(action, "action")
+                actionStr = json_utils.jsonSimpleParser(action, "action")
                 gotIt = False
                 for index, item in enumerate(actionList):
                     for i in item:
@@ -60,7 +60,7 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
                 if gotIt is True:
                     processTarget = processName[index]
                     logger.log(logging.DEBUG, "Process Taiget: " + processTarget)
-                    cmdStr = "{"+json_utils.jsonSimpleGenerate("des",processTarget)+",\n"+action+"}"
+                    cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des",processTarget), action)
                     logger.log(logging.DEBUG, "Cmd Str: " + cmdStr)
                     cmd_q.put_nowait(cmdStr)
                 else:
