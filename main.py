@@ -96,8 +96,8 @@ def main():
     voice_p = Process(target=microphone.voiceProcess, args=(LoggingQueue, ActionQueue, AudioQueue, CommandQueue, ))
     voice_p.start()
 
-    # music_p = Process(target=music.MusicProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
-    # music_p.start()
+    music_p = Process(target=music.MusicProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
+    music_p.start()
 
     # timer_p = Process(target=timer.TimerProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
     # timer_p.start()
