@@ -24,11 +24,11 @@ except ImportError:
     exit()
 
 
-actionStatusList = ["check"]
+actionStatusList = ["check", "get"]
 actionTimerList = ["alarm", "time"]
 actionLightList = ["smarthome.lights", "lights"]
 actionMusicList = ["music", "music_player_control", "video", "video_player_control"]
-actionHumidifierList = ["smarthome.humidity"]
+actionHumidifierList = ["smarthome.humidifier", "smarthome.devices"]
 actionList = [actionStatusList, actionTimerList, actionLightList, actionMusicList, actionHumidifierList]
 processName = ["status", "timer", "light", "music", "humidifier"]
 

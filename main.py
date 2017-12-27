@@ -96,8 +96,8 @@ def main():
     voice_p = Process(target=microphone.voiceProcess, args=(LoggingQueue, ActionQueue, AudioQueue, CommandQueue, ))
     voice_p.start()
 
-    music_p = Process(target=music.MusicProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
-    music_p.start()
+    # music_p = Process(target=music.MusicProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
+    # music_p.start()
 
     # timer_p = Process(target=timer.TimerProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
     # timer_p.start()
@@ -108,13 +108,17 @@ def main():
     # airPurifier_p = Process(target=air_purifier.AirPurifierProcess, args=(LoggingQueue, AudioQueue, Command_q))
     # airPurifier_p.start()
 
-    humidifier_p = Process(target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue))
+    
+
+    humidifier_p = Process(target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue, ))
     humidifier_p.start()
 
     voice_p.join()
     audio_p.join()
     # amqp_p.join()
     # airPurifier_p.join()
+    humidifierMQTT_p.join()
+    humidifier_p.join()
     action_p.join()
     logging_p.join()
 

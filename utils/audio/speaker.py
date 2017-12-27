@@ -33,15 +33,9 @@ def audioProcess(log_q, audio_q, cmd_q):
         try:
             jsonStr = audio_q.get_nowait()
             logger.log(logging.DEBUG, "JSON: "+ jsonStr)
-            #jsonStr = json.loads(jsonStr)
-            #if jsonStr["speech"]:
-            #    logger.log(logging.INFO, AGENT_NAME + ":" + jsonStr["speech"])
-            #    tts = gTTS(text=jsonStr["speech"], lang='en')
-            #    tts.save("speech.mp3")
-            #    os.system("mpg321 speech.mp3")
 
             speech = json_utils.jsonSimpleParser(jsonStr, "speech")
-            print(speech)
+            logger.log(logging.DEBUG, "Speech: "+ speech)
             if speech is -1:
                 logger.log(logging.ERROR, "JSON parse failed")
             else:
@@ -50,6 +44,9 @@ def audioProcess(log_q, audio_q, cmd_q):
                 tts.save("speech.mp3")
                 os.system("mpg321 speech.mp3")
 
+            command = cmd_q.get_nowait()
+            logger.log(logging.DEBUG, "Command: "+ jsonStr)
+
         except Exception as e:
-            #print('.', end='', flush=True)
-            pass
+            logger.log(logging.ERROR, "Failed to run audioProcess: exception={})".format(e))
+            raise e
