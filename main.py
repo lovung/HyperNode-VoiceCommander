@@ -76,7 +76,6 @@ def main():
     CommandQueue = Queue(1024)
     ActionQueue = Queue(1024)
     AudioQueue = Queue(1024)
-    Command_q = Queue(1024)
 
     print("Start")
     logging_p = Process(target=logger.loggingProcess, args=(LoggingQueue, ))
@@ -109,8 +108,8 @@ def main():
     # airPurifier_p = Process(target=air_purifier.AirPurifierProcess, args=(LoggingQueue, AudioQueue, Command_q))
     # airPurifier_p.start()
 
-    # humidifier_p = Process(target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, Command_q))
-    # humidifier_p.start()
+    humidifier_p = Process(target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue))
+    humidifier_p.start()
 
     voice_p.join()
     audio_p.join()

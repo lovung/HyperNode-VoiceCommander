@@ -14,7 +14,8 @@ except ImportError:
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
-
+    if rc == 0:
+        is_connected = True
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
@@ -119,6 +120,42 @@ class hyperMQTTClient(object):
             self.client.loop_forever()
         except Exception as e:
             self.logger.log(logging.ERROR, "Can not loop forever!")
+
+mqttc = mqtt.hyperMQTTClient(log_q)
+
+def MQTTProcess(log_q, cmd_q):
+    try:
+        logger = log.loggerInit(log_q)
+    except Exception as e:
+        print("Create logger failed")
+        exit()
+
+    try:
+        logger.log(logging.INFO, "MQTT Process is started")
+
+        
+
+        logger.log(logging.INFO, "Wait some seconds to connect to MQTT server")
+        mqttc.connect()
+        time.sleep(1)
+
+        # while(is_connected != True):
+        #     continue
+
+        logger.log(logging.INFO, "Connect success!")
+
+        humifier2_A = HubbleHumidifierDevice(mqttc = mqttc, topic_key = humidifier_topic_key)
+        humifier2_A.dev_subscribe()
+        mqttc.subscribe(hyper_sub_topic)
+        
+        getsetting_command = "get_projector_setting"
+        humifier2_A.dev_publish(getsetting_message)
+        
+        mqttc.loop_forever()
+        logger.log(logging.INFO, "Continue")
+    except Exception as e:
+        logger.log(logging.ERROR, "Failed to create custom metric: exception={})".format(e))
+        raise e    
 
 # class hyperMQTTClient_TSL(object):
 #     def __init__(self, log_q):
