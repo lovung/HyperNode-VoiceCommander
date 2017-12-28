@@ -25,7 +25,9 @@ def jsonSimpleParser(jsonStr, key):
 
 def jsonDoubleGenerate(json_1, json_2):
     try:
-        merged = {key: value for (key, value) in (json_1.items() + json_2.items())}
+        dictA = json.loads(json_1)
+        dictB = json.loads(json_2)
+        merged = {key: value for (key, value) in (dictA.items() + dictB.items())}
         jsonData = json.dumps(merged)
         print(str(jsonData))
         return jsonData
