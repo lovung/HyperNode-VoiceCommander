@@ -33,14 +33,10 @@ def publish_message(topic, message, qos=1):
     client.publish(topic, payload=message, qos=qos, retain=False)
 
 class hyperMQTTClient(object):
-    def __init__(self, log_q, connect_cb = on_connect, 
+    def __init__(self, connect_cb = on_connect, 
                  message_cb = on_message, 
                  publish_cb = on_publish,
                  disconnect_cb = on_disconnect):
-        try:
-            self.logger = log.loggerInit(log_q)
-        except Exception as e:
-            raise e
         try:
             self.client = mqtt.Client()
             self.client.on_connect = connect_cb
@@ -50,7 +46,7 @@ class hyperMQTTClient(object):
             self.subscribe_list = []
             self.broadcastTopic = []
             self.is_connected = 0
-            self.logger.log(logging.INFO, "Created MQTT client")
+            print("Created MQTT client")
         except Exception as e:
             logger.log(logging.ERROR, "Can not init MQTT client!")
 
@@ -63,7 +59,7 @@ class hyperMQTTClient(object):
             # self.kal_interval = kal_interval
             self.client.connect(host, port, kal_interval)
         except Exception as e:
-            self.logger.log(logging.ERROR, "Can not connect to MQTT server!")
+            print("Can not connect to MQTT server!")
 
     def subscribe(self, topic, qos = 1):
         try:
@@ -75,41 +71,41 @@ class hyperMQTTClient(object):
             self.client.subscribe(topic, qos=qos)
             self.subscribe_list.append(topic)
         except Exception as e:
-            self.logger.log(logging.ERROR, "Can not subscribe to MQTT topic!")
+            print("Can not subscribe to MQTT topic!")
 
     def unsubscribe(self, topic):
         try:
             self.client.unsubscribe(topic)
             self.subscribe_list.remove(topic)
         except Exception as e:
-            self.logger.log(logging.ERROR, "Can not unsubscribe to MQTT topic!")
+            print("Can not unsubscribe to MQTT topic!")
 
     def add_broadcast(self, topic):
         try:
             self.broadcastTopic.append(topic)
         except Exception as e:
-            self.logger.log(logging.ERROR, "Can not add topic to broadcast list!")
+            print("Can not add topic to broadcast list!")
 
     def remove_broadcast(self, topic):
         try:
             self.broadcastTopic.remove(topic)
         except ValueError:
-            self.logger.log(logging.ERROR, "Can not remove topic to broadcast list! - ValueError")
+            print("Can not remove topic to broadcast list! - ValueError")
         except Exception as e:
-            self.logger.log(logging.ERROR, "Can not remove topic to broadcast list!")
+            print("Can not remove topic to broadcast list!")
 
     def publish(self, topic, message):
         try:
             self.client.publish(topic, payload=message)
         except Exception as e:
-            self.logger.log(logging.ERROR, "Can not publish!")
+            print("Can not publish!")
 
     def broadcast(self, message):
         try:
             for topic in self.broadcastTopic:
                 self.client.publish(topic, payload=message)
         except Exception as e:
-            self.logger.log(logging.ERROR, "Can not broadcast!")
+            print("Can not broadcast!")
 
     def loop_forever(self):
         try:
@@ -119,8 +115,13 @@ class hyperMQTTClient(object):
             # manual interface.
             self.client.loop_forever()
         except Exception as e:
-            self.logger.log(logging.ERROR, "Can not loop forever!")
+            print("Can not loop forever!")
 
+    def loop_start(self):
+        try:
+            self.client.loop_start()
+        except Exception as e:
+            print("Can not loop start!")
 # class hyperMQTTClient_TSL(object):
 #     def __init__(self, log_q):
 #         try:

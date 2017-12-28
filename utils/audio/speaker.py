@@ -44,9 +44,9 @@ def audioProcess(log_q, audio_q, cmd_q):
                 tts.save("speech.mp3")
                 os.system("mpg321 speech.mp3")
 
-            command = cmd_q.get_nowait()
-            logger.log(logging.DEBUG, "Command: "+ jsonStr)
+            # command = cmd_q.get_nowait()
+            # logger.log(logging.DEBUG, "Command: "+ command)
 
         except Exception as e:
-            logger.log(logging.ERROR, "Failed to run audioProcess: exception={})".format(e))
-            raise e
+            # logger.log(logging.ERROR, "Failed to run audioProcess: exception={})".format(e))
+            pass

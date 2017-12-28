@@ -148,5 +148,5 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
             elif state == "Pause":
                 time.sleep(1)
     except Exception as e:
-        logger.log(logging.ERROR, "Failed to create custom metric: exception={})".format(e))
+        logger.log(logging.ERROR, "Voice Process: Failed to run: exception={})".format(e))
         raise e

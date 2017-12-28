@@ -66,6 +66,6 @@ def AirPurifierProcess(log_q, audio_q, cmd_q):
         mqttc.loop_forever()
         logger.log(logging.INFO, "Continue")
     except Exception as e:
-        logger.log(logging.ERROR, "Failed to create custom metric: exception={})".format(e))
+        logger.log(logging.ERROR, "Air Purifier: Failed to run: exception={})".format(e))
         raise e
     

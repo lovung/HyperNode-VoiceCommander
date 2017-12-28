@@ -15,15 +15,18 @@ def jsonSimpleParser(jsonStr, key):
     try:
         print("String JSON: " + jsonStr)
         print("key: " + key)
-        return json.loads(jsonStr)[key] #.decode('utf-8')
+        if key not in jsonStr:
+            return None
+        else:  
+            return json.loads(jsonStr) #.decode('utf-8')
     except Exception as e:
         raise e
         return -1
 
 def jsonDoubleGenerate(json_1, json_2):
     try:
-        jsonData = json.dumps(json_1)
-        jsonData = json.dumps(json_2)
+        merged = {key: value for (key, value) in (json_1.items() + json_2.items())}
+        jsonData = json.dumps(merged)
         print(str(jsonData))
         return jsonData
     except Exception as e:

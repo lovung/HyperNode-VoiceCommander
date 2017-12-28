@@ -49,6 +49,9 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
                 pass
             else:
                 actionStr = json_utils.jsonSimpleParser(action, "action")
+                if actionStr is None:
+                    logger.log(logging.DEBUG, "actionStr: " + action)
+                    continue
                 gotIt = False
                 for index, item in enumerate(actionList):
                     for i in item:
@@ -66,5 +69,5 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
                 else:
                     print("Not found")
     except Exception as e:
-        logger.log(logging.ERROR, "Failed to create custom metric: exception={})".format(e))
+        logger.log(logging.ERROR, "Action Manager: Failed to run: exception={})".format(e))
         raise e

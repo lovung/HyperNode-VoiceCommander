@@ -43,7 +43,7 @@ class HubbleHumidifierDevice(object):
         self.sub_topic = "dev/"+topic_key+"/sub"
         self.pub_topic = "dev/"+topic_key+"/pub"
 
-    def dev_subcribe(self):
+    def dev_subscribe(self):
         self.mqttc.subscribe(self.pub_topic)
 
     def dev_publish(self, message):
@@ -76,7 +76,7 @@ def mqttc_on_message_cb(client, userdata, msg):
 def mqttc_on_publish_cb(client, userdata, mid):
     print("Published: " + mid)
 
-mqttc = mqtt.hyperMQTTClient(log_q, connect_cb = mqttc_on_connect_cb, message_cb = mqttc_on_message_cb)
+mqttc = mqtt.hyperMQTTClient(connect_cb = mqttc_on_connect_cb, message_cb = mqttc_on_message_cb)
 def HumidifierProcess(log_q, audio_q, cmd_q):
     try:
         logger = log.loggerInit(log_q)
@@ -114,7 +114,7 @@ def HumidifierProcess(log_q, audio_q, cmd_q):
 
             
     except Exception as e:
-        logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))
-        raise e
-
+        # logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))
+        # raise e
+        pass
     

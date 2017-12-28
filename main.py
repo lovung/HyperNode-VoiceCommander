@@ -108,8 +108,6 @@ def main():
     # airPurifier_p = Process(target=air_purifier.AirPurifierProcess, args=(LoggingQueue, AudioQueue, Command_q))
     # airPurifier_p.start()
 
-    
-
     humidifier_p = Process(target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue, ))
     humidifier_p.start()
 
@@ -117,7 +115,6 @@ def main():
     audio_p.join()
     # amqp_p.join()
     # airPurifier_p.join()
-    humidifierMQTT_p.join()
     humidifier_p.join()
     action_p.join()
     logging_p.join()
