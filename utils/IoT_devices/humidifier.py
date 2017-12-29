@@ -4,6 +4,7 @@ import os.path
 import sys
 import logging
 import time
+import json
 
 TOP_DIR = os.path.join(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir), os.pardir)
 UTILS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir)
@@ -19,6 +20,12 @@ try:
     import mqtt_client as mqtt
 except ImportError:
     print("Import MQTT failed")
+    exit()
+
+try:
+    sys.path.insert(0, os.path.join(TOP_DIR, "utils/JSON"))
+    import json_utils
+except ImportError:
     exit()
 
 # airPurifier_sub_topic = "dev/000AE2345D31MydWBUOg/sub"
@@ -74,9 +81,9 @@ def mqttc_on_message_cb(client, userdata, msg):
     print("From "+ msg.topic+" - Received: "+str(msg.payload.decode('utf-8')))
 
 def mqttc_on_publish_cb(client, userdata, mid):
-    print("Published: " + mid)
+    print("Published: " + str(mid))
 
-mqttc = mqtt.hyperMQTTClient(connect_cb = mqttc_on_connect_cb, message_cb = mqttc_on_message_cb)
+mqttc = mqtt.hyperMQTTClient(connect_cb = mqttc_on_connect_cb, message_cb = mqttc_on_message_cb, publish_cb = mqttc_on_publish_cb)
 def HumidifierProcess(log_q, audio_q, cmd_q):
     try:
         logger = log.loggerInit(log_q)
@@ -96,25 +103,33 @@ def HumidifierProcess(log_q, audio_q, cmd_q):
         humifier2_A = HubbleHumidifierDevice(mqttc = mqttc, topic_key = humidifier_topic_key)
         humifier2_A.dev_subscribe()
         
-        
-        humifier2_A.dev_publish(getsetting_message)
-
+        humifier2_A.dev_send_command(getsetting_command)
         logger.log(logging.INFO, "Continue")
-        while True:
-            command = cmd_q.get_nowait()
-            print
 
-            # if json_utils.jsonSimpleParser(command, "des") == "humidifer":
-            #     parameters = json_utils.jsonSimpleParser(command, "parameters")
-            #     if json_utils.jsonSimpleParser(parameters, "device") != "humidifier":
-            #         continue
+    except Exception as e:
+        logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))
+        raise e
+
+    while True:
+        try:
+            command = cmd_q.get_nowait()
+        except Exception as a:
+            continue
+        try:
+            logger.log(logging.DEBUG, "Command received: " + command)
+            logger.log(logging.DEBUG, "Desination: " + str(json_utils.jsonSimpleParser(command, "des")))
+            if str(json_utils.jsonSimpleParser(command, "des")) == "humidifier":
+                parameters = json_utils.jsonSimpleParser(command, "parameters")
+                actionStr = str(json_utils.jsonSimpleParser(command, "action"))
+                logger.log(logging.DEBUG, "Action: " + actionStr)
+            else:
+                logger.log(logging.DEBUG, "The des is wrong")
 
             #     if str.find()
+        except Exception as a:
+            logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))
+            raise e
 
 
-            
-    except Exception as e:
-        # logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))
-        # raise e
-        pass
+        
     

@@ -26,15 +26,15 @@ def jsonSimpleParser(jsonStr, key):
 def jsonDoubleGenerate(json_1, json_2):
     try:
         dictA = json.loads(json_1)
-        print("dictA: " + str(dictA))
+        # print("dictA: " + str(dictA))
         dictB = json.loads(json_2)
-        print("dictA: " + str(dictB))
+        # print("dictA: " + str(dictB))
         merged = dictA.copy()
-        print("merged: " + str(merged))
+        # print("merged: " + str(merged))
         merged.update(dictB)
-        print("merged: " + str(merged))
+        # print("merged: " + str(merged))
         jsonData = json.dumps(merged)
-        print("JSONDATA: " + str(jsonData))
+        # print("JSONDATA: " + str(jsonData))
         return jsonData
     except Exception as e:
         raise e

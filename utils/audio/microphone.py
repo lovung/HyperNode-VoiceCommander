@@ -129,6 +129,7 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                 if (score < 0.5 or actionIncomplete == 'true' or actionIncomplete == 'True'): # or not(speechScript)):
                     logger.log(logging.INFO, "Action is not complete or score is low")
                     aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", "I am not sure to understand what you mean. Can you repeat, explain or give more information?"))
+                    time.sleep(5)
                 elif not(speechScript):
                     logger.log(logging.INFO, "Speech script is NULL")
                 else:
@@ -136,6 +137,8 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                         if (speechScript and speechScript != -1):
                             logger.log(logging.DEBUG, "Put script to AudioQueue and ActionQueue")
                             aud_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
+                            time.sleep(5)
+
                         # if (speechScript2 and speechScript2 != -1 and speechScript != speechScript2):
                         #     time.sleep(1)
                         #     logger.log(logging.DEBUG, "Put script to AudioQueue")
