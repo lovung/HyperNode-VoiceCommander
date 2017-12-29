@@ -39,9 +39,9 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
         print("Create logger failed")
         exit()
 
-    try:
-        logger.log(logging.INFO, "Action Manager Process is started")
-        while True:
+    logger.log(logging.INFO, "Action Manager Process is started")
+    while True:
+        try:
             action = action_q.get()
             # action = "{\"action\":\"smarthome.lights.switch.on\"}"
             if action is None:
@@ -55,19 +55,20 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
                 gotIt = False
                 for index, item in enumerate(actionList):
                     for i in item:
-                        if (str.find(actionStr,i) >= 0):
+                        if (str.find(str(actionStr),i) >= 0):
                             gotIt = True
                             break
                     if gotIt is True:
                         break
                 if gotIt is True:
                     processTarget = processName[index]
-                    logger.log(logging.DEBUG, "Process Taiget: " + processTarget)
-                    cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des",processTarget), json.load(action))
+                    logger.log(logging.DEBUG, "Process Target: " + processTarget)
+                    logger.log(logging.DEBUG, "Action: " + action)
+                    cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des",processTarget), action)
                     logger.log(logging.DEBUG, "Cmd Str: " + cmdStr)
-                    cmd_q.put_nowait(cmdStr)
+                    cmd_q.put_nowait(str(cmdStr))
                 else:
                     print("Not found")
-    except Exception as e:
-        logger.log(logging.ERROR, "Action Manager: Failed to run: exception={})".format(e))
-        raise e
+        except Exception as e:
+            logger.log(logging.ERROR, "Action Manager: Failed to run: exception={})".format(e))
+            raise e
