@@ -19,18 +19,21 @@ try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/logger"))
     import logger as log
 except ImportError:
+    print("File: " + __file__ + " - Import logger failed")
     exit()
 
 try:
     sys.path.insert(0, os.path.join(TOP_DIR, "snowboy/examples/Python3"))
     import snowboydecoder as sb
 except ImportError:
+    print("File: " + __file__ + " - Import snowboy failed")
     exit()
 
 try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/JSON"))
     import json_utils
 except ImportError:
+    print("File: " + __file__ + " - Import JSON failed")
     exit()
 
 state = "Sleep"

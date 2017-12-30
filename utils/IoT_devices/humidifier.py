@@ -12,20 +12,21 @@ try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/logger"))
     import logger as log
 except ImportError:
-    print("Import log failed")
+    print("File: " + __file__ + " - Import log failed")
     exit()
 
 try:
     sys.path.insert(0, os.path.join(UTILS_DIR, "MQTT"))
     import mqtt_client as mqtt
 except ImportError:
-    print("Import MQTT failed")
+    print("File: " + __file__ + " - Import MQTT failed")
     exit()
 
 try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/JSON"))
     import json_utils
 except ImportError:
+    print("File: " + __file__ + " - Import JSON failed")
     exit()
 
 # airPurifier_sub_topic = "dev/000AE2345D31MydWBUOg/sub"

@@ -29,24 +29,28 @@ try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/logger"))
     import logger
 except ImportError:
+    print("File: " + __file__ + " - Import logger failed")
     exitProgram()
 
 try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/AMQP"))
     import amqp_utils as amqp
 except ImportError:
+    print("File: " + __file__ + " - Import AMQP failed")
     exitProgram()
 
 try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/action"))
     import action
 except ImportError:
+    print("File: " + __file__ + " - Import action failed")
     exitProgram()
 
 try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/network"))
     import wifi_utils
 except ImportError:
+    print("File: " + __file__ + " - Import network failed")
     exitProgram()
 
 try:
@@ -54,6 +58,7 @@ try:
     import microphone
     import speaker
 except ImportError:
+    print("File: " + __file__ + " - Import audio failed")
     exitProgram()
 
 try:
@@ -61,7 +66,7 @@ try:
     import air_purifier
     import humidifier
 except ImportError:
-    print("Import failed")
+    print("File: " + __file__ + " - Import IoT_devices failed")
     exitProgram()
 
 # def testQueue(AudioQueue):
