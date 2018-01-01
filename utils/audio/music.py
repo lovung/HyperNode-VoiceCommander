@@ -17,12 +17,14 @@ try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/logger"))
     import logger as log
 except ImportError:
+    print("File: " + __file__ + " - Import log failed")
     exit()
 
 try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/JSON"))
     import json_utils
 except ImportError:
+    print("File: " + __file__ + " - Import JSON failed")
     exit()
 
 # Set DEVELOPER_KEY to the API key value from the APIs & auth > Registered apps
@@ -82,11 +84,13 @@ def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q):
         time.sleep(1)
         try:
             command = cmd_q.get_nowait()
+        except HttpError as e:
+            continue
+
+        try:
             logger.log(logging.DEBUG, "Command: " + command)
             if json_utils.jsonSimpleParser(command, "des") == "music":
                 pass
-            
-
 
 if __name__ == "__main__":
     argparser.add_argument("--q", help="Search term", default="Mashup Christmas & Happy New year")

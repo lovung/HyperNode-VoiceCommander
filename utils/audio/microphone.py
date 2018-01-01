@@ -19,18 +19,21 @@ try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/logger"))
     import logger as log
 except ImportError:
+    print("File: " + __file__ + " - Import logger failed")
     exit()
 
 try:
     sys.path.insert(0, os.path.join(TOP_DIR, "snowboy/examples/Python3"))
     import snowboydecoder as sb
 except ImportError:
+    print("File: " + __file__ + " - Import snowboy failed")
     exit()
 
 try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/JSON"))
     import json_utils
 except ImportError:
+    print("File: " + __file__ + " - Import JSON failed")
     exit()
 
 state = "Sleep"
@@ -103,8 +106,8 @@ def voice2JSON():
 def voiceProcess(log_q, action_q, aud_q, cmd_q):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "voiceProcess is started")
-    try:
-        while True:
+    while True:
+        try:
             global state
             if state == "Sleep":
                 state = "Pause"
@@ -129,6 +132,7 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                 if (score < 0.5 or actionIncomplete == 'true' or actionIncomplete == 'True'): # or not(speechScript)):
                     logger.log(logging.INFO, "Action is not complete or score is low")
                     aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", "I am not sure to understand what you mean. Can you repeat, explain or give more information?"))
+                    time.sleep(8)
                 elif not(speechScript):
                     logger.log(logging.INFO, "Speech script is NULL")
                 else:
@@ -136,6 +140,8 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                         if (speechScript and speechScript != -1):
                             logger.log(logging.DEBUG, "Put script to AudioQueue and ActionQueue")
                             aud_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
+                            time.sleep(3)
+
                         # if (speechScript2 and speechScript2 != -1 and speechScript != speechScript2):
                         #     time.sleep(1)
                         #     logger.log(logging.DEBUG, "Put script to AudioQueue")
@@ -146,6 +152,6 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                         continue    
             elif state == "Pause":
                 time.sleep(1)
-    except Exception as e:
-        logger.log(logging.ERROR, "Voice Process: Failed to run: exception={})".format(e))
-        raise e
+        except Exception as e:
+            logger.log(logging.ERROR, "Voice Process: Failed to run: exception={})".format(e))
+            raise e

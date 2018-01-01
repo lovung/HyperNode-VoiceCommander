@@ -9,6 +9,7 @@ try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/logger"))
     import logger as log
 except ImportError:
+    print("File: " + __file__ + " - Import log failed")
     exit()
 
 # The callback for when the client receives a CONNACK response from the server.

@@ -13,12 +13,14 @@ try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/logger"))
     import logger as log
 except ImportError:
+    print("File: " + __file__ + " - Import log failed")
     exitProgram()
 
 try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/JSON"))
     import json_utils
 except ImportError:
+    print("File: " + __file__ + " - Import JSON failed")
     exitProgram()
 
 AGENT_NAME = "Hyper"
