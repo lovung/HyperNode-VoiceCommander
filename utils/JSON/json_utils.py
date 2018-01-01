@@ -13,8 +13,8 @@ def jsonSimpleGenerate(key, value):
 
 def jsonSimpleParser(jsonStr, key):
     try:
-        print("String JSON: " + jsonStr)
-        print("key: " + key)
+        # print("String JSON: " + jsonStr)
+        # print("key: " + key)
         if str.find(jsonStr, key) < 0:
             return None
         else:  

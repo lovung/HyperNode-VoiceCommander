@@ -84,11 +84,13 @@ def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q):
         time.sleep(1)
         try:
             command = cmd_q.get_nowait()
+        except HttpError as e:
+            continue
+
+        try:
             logger.log(logging.DEBUG, "Command: " + command)
             if json_utils.jsonSimpleParser(command, "des") == "music":
                 pass
-            
-
 
 if __name__ == "__main__":
     argparser.add_argument("--q", help="Search term", default="Mashup Christmas & Happy New year")

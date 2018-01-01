@@ -116,8 +116,8 @@ def main():
     humidifier_p = Process(target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue, ))
     humidifier_p.start()
 
-    voice_p.join()
-    audio_p.join()
+    # voice_p.join()
+    # audio_p.join()
     # amqp_p.join()
     # airPurifier_p.join()
     humidifier_p.join()

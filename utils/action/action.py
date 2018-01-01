@@ -2,6 +2,7 @@ import sys
 import os.path
 import logging
 import json
+import time
 
 TOP_DIR = os.path.join(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir), os.pardir)
 UTILS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir)
@@ -27,11 +28,11 @@ except ImportError:
     exit()
 
 
-actionStatusList = ["check", "get"]
+actionStatusList = []
 actionTimerList = ["alarm", "time"]
 actionLightList = ["smarthome.lights", "lights"]
 actionMusicList = ["music", "music_player_control", "video", "video_player_control"]
-actionHumidifierList = ["smarthome.humidifier", "smarthome.devices"]
+actionHumidifierList = ["smarthome.humidifier", "smarthome.devices", "humidifier"]
 actionList = [actionStatusList, actionTimerList, actionLightList, actionMusicList, actionHumidifierList]
 processName = ["status", "timer", "light", "music", "humidifier"]
 
@@ -44,6 +45,12 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
 
     logger.log(logging.INFO, "Action Manager Process is started")
     while True:
+        # Debug
+        # cmdStr = '{"parameters": {"device": "humidifier", "on_off": "on"}, "des": "humidifier", "action": "smarthome.humidifier.hotmist.set"}'
+        # cmd_q.put_nowait(cmdStr)
+        # time.sleep(10)
+
+        # Release
         try:
             action = action_q.get()
             # action = "{\"action\":\"smarthome.lights.switch.on\"}"

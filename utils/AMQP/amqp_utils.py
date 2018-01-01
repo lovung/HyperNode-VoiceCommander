@@ -59,8 +59,12 @@ def AMQPProcess(log_q, send_q, rcv_q, cmd_q):
     while True:
         try:
             jsonStr = send_q.get_nowait()
+        except Exception as e:
+            continue
+        try:
             jsonStr = json.loads(jsonStr)
 
             AMQPClient.publishMessage(routing_key=AMQPSendTopic_lightManager)
         except Exception as e:
-            pass
+            logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))
+            raise e
