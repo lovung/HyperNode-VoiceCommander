@@ -151,13 +151,25 @@ def processCommand(audio_q, subCommand, typeCommand, parameters):
     if subCommand == "check":
         speechScript = "The humidity is " + str(humidifier2_A.get_humidity_s()) + " right now"
         audio_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
-        time.sleep(3)
         return 0
+    elif subCommand == "power":
+        if typeCommand == "get":
+            speechScript = "The power status is " + str(humidifier2_A.get_power_s()) + " right now"
+            audio_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
+            return 0
+        elif typeCommand == "set":
+            if parameters["on_off"] == "on":
+                humidifier2_A.set_power_s(1)
+            elif parameters["on_off"] == "off":
+                humidifier2_A.set_power_s(0)
+            else:
+                # Toggle
+                humidifier2_A.set_power_s(1 - humidifier2_A.get_power_s()) 
+            return 0
     elif subCommand == "hotmist":
         if typeCommand == "get":
             speechScript = "The hot mist status is " + str(humidifier2_A.get_hot_mist_s()) + " right now"
             audio_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
-            time.sleep(3)
             return 0
         elif typeCommand == "set":
             if parameters["on_off"] == "on":
@@ -172,7 +184,6 @@ def processCommand(audio_q, subCommand, typeCommand, parameters):
         if typeCommand == "get":
             speechScript = "The mist level is " + str(humidifier2_A.get_hot_mist_s()) + " now"
             audio_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
-            time.sleep(3)
             return 0
         elif typeCommand == "set":
             humidifier2_A.set_mist_level_s(parameters["humidifier_level"])
@@ -216,21 +227,20 @@ def HumidifierProcess(log_q, audio_q, cmd_q):
                 actionStr = str(json_utils.jsonSimpleParser(command, "action"))
                 logger.log(logging.DEBUG, "Action: " + actionStr)
                 actionWords = actionStr.split('.')
-                for w in actionWords:
-                    logger.log(logging.DEBUG, "Word:" + w)
 
                 subCommand = actionWords[2]
+                logger.log(logging.DEBUG, "Sub Command:" + subCommand)
                 typeCommand = None
                 if len(actionWords) >= 4:
                     typeCommand = actionWords[3]
+                    logger.log(logging.DEBUG, "Type Command:" + typeCommand)
                 
                 processCommand(audio_q, subCommand, typeCommand, parameters)
             else:
                 logger.log(logging.DEBUG, "The des is wrong")
         except Exception as a:
             logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))
-            raise e
-
+            continue
 
         
     
