@@ -8,7 +8,6 @@ def jsonSimpleGenerate(key, value):
         jsonData = json.dumps(data)
         return jsonData
     except Exception as e:
-        raise e
         return -1
 
 def jsonSimpleParser(jsonStr, key):
@@ -18,9 +17,11 @@ def jsonSimpleParser(jsonStr, key):
         if str.find(jsonStr, key) < 0:
             return None
         else:  
-            return json.loads(jsonStr)[key] #.decode('utf-8')
+            try:
+                return json.loads(jsonStr)[key] #.decode('utf-8')
+            except Exception as e:
+                return json.loads(jsonStr.decode('utf-8'))[key]
     except Exception as e:
-        raise e
         return -1
 
 def jsonDoubleGenerate(json_1, json_2):
@@ -37,5 +38,4 @@ def jsonDoubleGenerate(json_1, json_2):
         # print("JSONDATA: " + str(jsonData))
         return jsonData
     except Exception as e:
-        raise e
         return -1

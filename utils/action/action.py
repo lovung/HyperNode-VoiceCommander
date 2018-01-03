@@ -28,13 +28,13 @@ except ImportError:
     exit()
 
 
-actionStatusList = []
 actionTimerList = ["alarm", "time"]
 actionLightList = ["smarthome.lights", "lights"]
 actionMusicList = ["music", "music_player_control", "video", "video_player_control"]
-actionHumidifierList = ["smarthome.humidifier", "smarthome.devices", "humidifier"]
-actionList = [actionStatusList, actionTimerList, actionLightList, actionMusicList, actionHumidifierList]
-processName = ["status", "timer", "light", "music", "humidifier"]
+actionHumidifierList = ["smarthome.humidifier", "humidifier"]
+actionDevicesList = ["smarthome.device"]
+actionList = [actionTimerList, actionLightList, actionMusicList, actionHumidifierList, actionDevicesList]
+processName = ["timer", "light", "music", "humidifier", "alldevices"]
 
 def ActionManagerProcess(log_q, action_q, cmd_q):
     try:
@@ -51,6 +51,7 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
         # time.sleep(10)
 
         # Release
+        time.sleep(0.1)
         try:
             action = action_q.get()
             # action = "{\"action\":\"smarthome.lights.switch.on\"}"
@@ -59,6 +60,8 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
                 pass
             else:
                 actionStr = json_utils.jsonSimpleParser(action, "action")
+                parameters_j = json_utils.jsonSimpleParser(action, "parameters")
+                logger.log(logging.DEBUG, "parameters: " + str(parameters_j))
                 if actionStr is None:
                     logger.log(logging.DEBUG, "actionStr: " + action)
                     continue
@@ -72,13 +75,18 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
                         break
                 if gotIt is True:
                     processTarget = processName[index]
-                    logger.log(logging.DEBUG, "Process Target: " + processTarget)
+                    if processTarget == "alldevices":
+                        if parameters_j["device"] == "humidifier":
+                            processTarget = "humidifier"
+                        elif str.find(parameters_j["device"], "light") >= 0:
+                            processTarget = "light"
+
+                    logger.log(logging.INFO, "Process Target: " + processTarget)
                     logger.log(logging.DEBUG, "Action: " + action)
                     cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des",processTarget), action)
-                    logger.log(logging.DEBUG, "Cmd Str: " + cmdStr)
+                    logger.log(logging.INFO, "Cmd Str: " + cmdStr)
                     cmd_q.put_nowait(str(cmdStr))
                 else:
                     print("Not found")
         except Exception as e:
             logger.log(logging.ERROR, "Action Manager: Failed to run: exception={})".format(e))
-            raise e

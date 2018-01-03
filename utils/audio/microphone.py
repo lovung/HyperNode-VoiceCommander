@@ -109,6 +109,16 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
     while True:
         try:
             global state
+            time.sleep(0.1)
+            try:
+                if state != "Sleep":
+                    command = cmd_q.get_nowait()
+                    if str(json_utils.jsonSimpleParser(command,"des")) == "voice":
+                        state = (json_utils.jsonSimpleParser(command,"state"))
+                        logger.log(logging.DEBUG, "Change the state to" + state)
+            except Exception as e:
+                pass
+
             if state == "Sleep":
                 state = "Pause"
                 hotWordDetect()
@@ -122,17 +132,18 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                 logger.log(logging.DEBUG, "speechScript: " + speechScript)
                 logger.log(logging.DEBUG, "speechScript2: " + speechScript2)
 
-                simpleJSON = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("action",action), json_utils.jsonSimpleGenerate("parameters",parameters))
                 if (action == -1 or action == "smalltalk.greetings.bye"):
                     aud_q.put(json_utils.jsonSimpleGenerate("speech", speechScript))
                     state = "Sleep"
                     continue
 
+                simpleJSON = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("action",action), json_utils.jsonSimpleGenerate("parameters",parameters))
                 action_q.put_nowait(str(simpleJSON))
                 if (score < 0.5 or actionIncomplete == 'true' or actionIncomplete == 'True'): # or not(speechScript)):
                     logger.log(logging.INFO, "Action is not complete or score is low")
                     aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", "I am not sure to understand what you mean. Can you repeat, explain or give more information?"))
                     time.sleep(8)
+                    continue
                 elif not(speechScript):
                     logger.log(logging.INFO, "Speech script is NULL")
                 else:
@@ -140,7 +151,7 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                         if (speechScript and speechScript != -1):
                             logger.log(logging.DEBUG, "Put script to AudioQueue and ActionQueue")
                             aud_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
-                            time.sleep(3)
+                            time.sleep(2)
 
                         # if (speechScript2 and speechScript2 != -1 and speechScript != speechScript2):
                         #     time.sleep(1)
@@ -151,7 +162,9 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                         state = "Sleep"
                         continue    
             elif state == "Pause":
-                time.sleep(1)
+                time.sleep(0.1)
+            else:
+                state = "Sleep"
         except Exception as e:
             logger.log(logging.ERROR, "Voice Process: Failed to run: exception={})".format(e))
-            raise e
+            continue
