@@ -114,7 +114,7 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "voiceProcess is started")
 
-    oneTimeTrigger = False
+    #oneTimeTrigger = False
     runTrigger = False
     while True:
         try:
@@ -141,10 +141,10 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                     #Speech: Hello Mr. Vu Long
                     os.system("mpg321 Resources/HelloMrVuLong.mp3")
 
-                if oneTimeTrigger == False:
-                    oneTimeTrigger = True
-                    aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", "My local IP is " + wifi_utils.getLocalWifiIP()))
-                    time.sleep(5)
+                #if oneTimeTrigger == False:
+                #    oneTimeTrigger = True
+                #    aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", "My local IP is " + wifi_utils.getLocalWifiIP()))
+                #    time.sleep(5)
                     
 
                 [action, actionIncomplete, score, parameters, speechScript, speechScript2] = voice2JSON()
