@@ -36,6 +36,13 @@ except ImportError:
     print("File: " + __file__ + " - Import JSON failed")
     exit()
 
+try:
+    sys.path.insert(0, os.path.join(TOP_DIR, "utils/network"))
+    import wifi_utils
+except ImportError:
+    print("File: " + __file__ + " - Import JSON failed")
+    exit()
+
 state = "Sleep"
 model = os.path.join(TOP_DIR, "models/Hyper.pmdl")
 detector = sb.HotwordDetector(model, sensitivity=0.5)
@@ -106,6 +113,9 @@ def voice2JSON():
 def voiceProcess(log_q, action_q, aud_q, cmd_q):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "voiceProcess is started")
+
+    #oneTimeTrigger = False
+    runTrigger = False
     while True:
         try:
             global state
@@ -120,10 +130,23 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                 pass
 
             if state == "Sleep":
+                if runTrigger == True:
+                    runTrigger = False
                 state = "Pause"
                 hotWordDetect()
             elif state == "Run":
                 logger.log(logging.INFO, "Voice is detected")
+                if runTrigger == False:
+                    runTrigger = True
+                    #Speech: Hello Mr. Vu Long
+                    os.system("mpg321 Resources/HelloMrVuLong.mp3")
+
+                #if oneTimeTrigger == False:
+                #    oneTimeTrigger = True
+                #    aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", "My local IP is " + wifi_utils.getLocalWifiIP()))
+                #    time.sleep(5)
+                    
+
                 [action, actionIncomplete, score, parameters, speechScript, speechScript2] = voice2JSON()
                 logger.log(logging.INFO, "Action: " + action)
                 logger.log(logging.DEBUG, "actionIncomplete: " + str(actionIncomplete))
