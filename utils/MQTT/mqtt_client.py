@@ -128,7 +128,7 @@ class hyperMQTTClient(object):
 #         try:
 #             self.logger = log.loggerInit(log_q)
 #         except Exception as e:
-#             raise e
+#             print("Add logger ERRORRRRRRRRRRRR")
 #         try:
 #             self.client = mqtt.Client()
 #             self.client.on_connect = on_connect

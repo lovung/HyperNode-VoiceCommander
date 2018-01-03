@@ -31,7 +31,7 @@ def audioProcess(log_q, audio_q, cmd_q):
     logger.log(logging.INFO, "audioProcess is started")
     
     while True:
-        time.sleep(1)
+        time.sleep(0.25)
         try:
             jsonStr = audio_q.get_nowait()
             logger.log(logging.DEBUG, "JSON: "+ jsonStr)
@@ -41,10 +41,14 @@ def audioProcess(log_q, audio_q, cmd_q):
             if speech is -1:
                 logger.log(logging.ERROR, "JSON parse failed")
             else:
+                cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des","voice"),json_utils.jsonSimpleGenerate("state","Pause"))
+                cmd_q.put_nowait(str(cmdStr))
                 logger.log(logging.INFO, AGENT_NAME + ":" + speech)
                 tts = gTTS(text=speech, lang='en')
                 tts.save("speech.mp3")
                 os.system("mpg321 speech.mp3")
+                cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des","voice"),json_utils.jsonSimpleGenerate("state","Run"))
+                cmd_q.put_nowait(str(cmdStr))
 
             # command = cmd_q.get_nowait()
             # logger.log(logging.DEBUG, "Command: "+ command)

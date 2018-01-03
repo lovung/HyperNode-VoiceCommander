@@ -67,4 +67,3 @@ def AMQPProcess(log_q, send_q, rcv_q, cmd_q):
             AMQPClient.publishMessage(routing_key=AMQPSendTopic_lightManager)
         except Exception as e:
             logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))
-            raise e

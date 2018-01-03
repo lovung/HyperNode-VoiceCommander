@@ -51,6 +51,7 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
         # time.sleep(10)
 
         # Release
+        time.sleep(0.1)
         try:
             action = action_q.get()
             # action = "{\"action\":\"smarthome.lights.switch.on\"}"
@@ -75,9 +76,9 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
                 if gotIt is True:
                     processTarget = processName[index]
                     if processTarget == "alldevices":
-                        if str.find(str(json_utils.jsonSimpleParser(parameters_j, "device")), "humidifier") >= 0:
+                        if parameters_j["device"] == "humidifier":
                             processTarget = "humidifier"
-                        elif str.find(str(json_utils.jsonSimpleParser(parameters_j, "device")), "light") >= 0:
+                        elif str.find(parameters_j["device"], "light") >= 0:
                             processTarget = "light"
 
                     logger.log(logging.INFO, "Process Target: " + processTarget)
@@ -89,4 +90,3 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
                     print("Not found")
         except Exception as e:
             logger.log(logging.ERROR, "Action Manager: Failed to run: exception={})".format(e))
-            raise e

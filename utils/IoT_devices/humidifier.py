@@ -147,25 +147,37 @@ def mqttc_on_publish_cb(client, userdata, mid):
 
 mqttc = mqtt.hyperMQTTClient(connect_cb = mqttc_on_connect_cb, message_cb = mqttc_on_message_cb, publish_cb = mqttc_on_publish_cb)
 humidifier2_A = HubbleHumidifierDevice(mqttc = mqttc, topic_key = humidifier_topic_key)
-def processCommand(audio_q, subCommand, typeCommand, parameters):
+def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
     if subCommand == "check":
+        logger.log(logging.INFO, "The humidity is " + str(humidifier2_A.get_humidity_s()))
         speechScript = "The humidity is " + str(humidifier2_A.get_humidity_s()) + " right now"
         audio_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
         return 0
-    elif subCommand == "power":
+    elif subCommand == "power" or subCommand == "switch":
         if typeCommand == "get":
+            logger.log(logging.INFO, "The humidity is " + str(humidifier2_A.get_power_s()))
             speechScript = "The power status is " + str(humidifier2_A.get_power_s()) + " right now"
             audio_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
             return 0
         elif typeCommand == "set":
             if parameters["on_off"] == "on":
+                logger.log(logging.INFO, "Turn the power on")
                 humidifier2_A.set_power_s(1)
             elif parameters["on_off"] == "off":
+                logger.log(logging.INFO, "Turn the power off")
                 humidifier2_A.set_power_s(0)
             else:
                 # Toggle
                 humidifier2_A.set_power_s(1 - humidifier2_A.get_power_s()) 
             return 0
+        elif typeCommand == "on":
+            logger.log(logging.INFO, "Turn the power on")
+            humidifier2_A.set_power_s(1)
+        elif typeCommand == "off":
+            logger.log(logging.INFO, "Turn the power off")
+            humidifier2_A.set_power_s(0)
+            
+            
     elif subCommand == "hotmist":
         if typeCommand == "get":
             speechScript = "The hot mist status is " + str(humidifier2_A.get_hot_mist_s()) + " right now"
@@ -186,7 +198,15 @@ def processCommand(audio_q, subCommand, typeCommand, parameters):
             audio_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
             return 0
         elif typeCommand == "set":
-            humidifier2_A.set_mist_level_s(parameters["humidifier_level"])
+            level = parameters["humidifier-level"]
+            if level == "1":
+                humidifier2_A.set_mist_level_s(1)
+            elif level == "2":
+                humidifier2_A.set_mist_level_s(2)
+            elif level == "3":
+                humidifier2_A.set_mist_level_s(3)
+            else:
+                humidifier2_A.set_mist_level_s(4)
             return 0
 
 
@@ -212,9 +232,9 @@ def HumidifierProcess(log_q, audio_q, cmd_q):
 
     except Exception as e:
         logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))
-        raise e
 
     while True:
+        time.sleep(0.25)
         try:
             command = cmd_q.get_nowait()
         except Exception as a:
@@ -235,9 +255,10 @@ def HumidifierProcess(log_q, audio_q, cmd_q):
                     typeCommand = actionWords[3]
                     logger.log(logging.DEBUG, "Type Command:" + typeCommand)
                 
-                processCommand(audio_q, subCommand, typeCommand, parameters)
+                processCommand(logger, audio_q, subCommand, typeCommand, parameters)
             else:
                 logger.log(logging.DEBUG, "The des is wrong")
+                time.sleep(2)
         except Exception as a:
             logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))
             continue
