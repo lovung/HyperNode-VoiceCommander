@@ -125,7 +125,7 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                     command = cmd_q.get_nowait()
                     if str(json_utils.jsonSimpleParser(command,"des")) == "voice":
                         state = (json_utils.jsonSimpleParser(command,"state"))
-                        logger.log(logging.DEBUG, "Change the state to" + state)
+                        logger.log(logging.DEBUG, "Change the state to " + state)
             except Exception as e:
                 pass
 

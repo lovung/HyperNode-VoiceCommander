@@ -61,6 +61,33 @@ def youtubeSearch(options):
     print("Videos:\n", "\n".join(videosString), "\n")
     return videoIDs 
 
+def youtubeSearchSong(songName):
+    youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
+                    developerKey=DEVELOPER_KEY)
+
+    # Call the search.list method to retrieve results matching the specified
+    # query term.
+    search_response = youtube.search().list(
+        q=songName,
+        part="id,snippet",
+        maxResults=5
+        ).execute()
+
+    videosString = []
+    videoIDs = []
+
+    # Add each result to the appropriate list, and then display the lists of
+    # matching videos, channels, and playlists.
+    for search_result in search_response.get("items", []):
+        if search_result["id"]["kind"] == "youtube#video":
+            videosString.append("%s (%s)" % (search_result["snippet"]["title"],
+                                         search_result["id"]["videoId"]))
+            videoIDs.append(search_result["id"]["videoId"])
+
+    print("Videos:\n", "\n".join(videosString), "\n")
+    return videoIDs 
+
+previousFile = ""
 def youtubeLoadandPlay(videoID):
     print(videoID)
     url = "https://www.youtube.com/watch?v="+videoID
@@ -71,26 +98,96 @@ def youtubeLoadandPlay(videoID):
         #print(a.bitrate, a.extension, a.get_filesize())
         #if a.extension is "m4a":
     bestAudio = video.getbestaudio()
-    fileName = "yb_download."+bestAudio.extension
+    fileName = "Resources/yb_download."+bestAudio.extension
     bestAudio.download(filepath=fileName)
     print("Download success")
-    os.system("cvlc " +fileName)
+    os.system("cvlc " + fileName + " &")
+    global previousFile
+    previousFile = fileName
+
+def pausePlayer():
+    print("Pause...")
+    os.system('ps aux | grep "vlc" | cut -d ' ' -f 9 | xargs kill -SIGSTOP')
+
+def resumePlayer():
+    print("Resume...")
+    os.system('ps aux | grep "vlc" | cut -d ' ' -f 9 | xargs kill -SIGCONT')
+
+def stopPlayer():
+    print("Stop...")
+    os.system('ps aux | grep "vlc" | cut -d ' ' -f 9 | xargs kill -SIGKILL')
+
+def playPlayer():
+    print("Play...")
+    os.system("cvlc " + previousFile + " &")
+
+def searchAndPlay(name):
+    if name is None:
+        return
+    print("Search: ", name)
+    videoIDs = youtubeSearchSong(name)
+    print("Download and play")
+    youtubeLoadandPlay(videoIDs[0])
+
+def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
+    if subCommand == "video":
+        if typeCommand == "play":
+            if parameters["video"]:
+                searchAndPlay(parameters["video"])
+            elif parameters["movie"]:
+                searchAndPlay(parameters["movie"])
+            elif parameters["song"]:
+                searchAndPlay(parameters["song"])
+    elif subCommand == "music":
+        if typeCommand == "play":
+            if parameters["song"]:
+                searchAndPlay(parameters["song"])
+            elif parameters["album"]:
+                searchAndPlay(parameters["album"])
+            elif parameters["playlist"]:
+                searchAndPlay(parameters["playlist"])
+    elif subCommand == "video_player_control" or subCommand == "music_player_control":
+        if typeCommand == "play" or typeCommand == "resume":
+            resumePlayer()
+        elif typeCommand == "pause":
+            pausePlayer()
+        elif typeCommand == "stop":
+            stopPlayer()
+        elif typeCommand == "repeat":
+            playPlayer()
 
 def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "Music proccess is started")
 
     while True:
-        time.sleep(1)
+        time.sleep(0.15)
         try:
             command = cmd_q.get_nowait()
-        except HttpError as e:
+        except Exception as e:
             continue
 
         try:
             logger.log(logging.DEBUG, "Command: " + command)
             if json_utils.jsonSimpleParser(command, "des") == "music":
-                pass
+                parameters = json_utils.jsonSimpleParser(command, "parameters")
+                actionStr = str(json_utils.jsonSimpleParser(command, "action"))
+                actionWords = actionStr.split('.')
+
+                subCommand = actionWords[0]
+                logger.log(logging.DEBUG, "Sub Command: " + subCommand)
+                typeCommand = actionWords[1]
+                logger.log(logging.DEBUG, "Type Command: " + typeCommand)
+
+                processCommand(logger, audio_q, subCommand, typeCommand, parameters)
+            else:
+                logger.log(logging.DEBUG, "The des is wrong")
+                cmd_q.put_nowait(command)
+                time.sleep(1)
+        except Exception as e:
+            logger.log(logging.ERROR, "Failed to run Music process: exception={})".format(e))
+            continue
+        
 
 if __name__ == "__main__":
     argparser.add_argument("--q", help="Search term", default="Mashup Christmas & Happy New year")

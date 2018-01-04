@@ -4,3 +4,5 @@ log/*
 *.log
 __pycache__/
 *.pyc
+Resources/
+Resources/*

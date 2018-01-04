@@ -249,15 +249,16 @@ def HumidifierProcess(log_q, audio_q, cmd_q):
                 actionWords = actionStr.split('.')
 
                 subCommand = actionWords[2]
-                logger.log(logging.DEBUG, "Sub Command:" + subCommand)
+                logger.log(logging.DEBUG, "Sub Command: " + subCommand)
                 typeCommand = None
                 if len(actionWords) >= 4:
                     typeCommand = actionWords[3]
-                    logger.log(logging.DEBUG, "Type Command:" + typeCommand)
+                    logger.log(logging.DEBUG, "Type Command: " + typeCommand)
                 
                 processCommand(logger, audio_q, subCommand, typeCommand, parameters)
             else:
                 logger.log(logging.DEBUG, "The des is wrong")
+                cmd_q.put_nowait(command)
                 time.sleep(2)
         except Exception as a:
             logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))

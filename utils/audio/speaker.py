@@ -46,7 +46,7 @@ def audioProcess(log_q, audio_q, cmd_q):
                 logger.log(logging.INFO, AGENT_NAME + ":" + speech)
                 tts = gTTS(text=speech, lang='en')
                 tts.save("Resources/speech.mp3")
-                os.system("mpg321 Resources/speech.mp3")
+                os.system("mpg321 Resources/speech.mp3 &")
                 cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des","voice"),json_utils.jsonSimpleGenerate("state","Run"))
                 cmd_q.put_nowait(str(cmdStr))
 

@@ -56,6 +56,7 @@ except ImportError:
 try:
     sys.path.insert(0, os.path.join(TOP_DIR, "utils/audio"))
     import microphone
+    import music
     import speaker
 except ImportError:
     print("File: " + __file__ + " - Import audio failed")
@@ -101,8 +102,8 @@ def main():
     voice_p = Process(name = "Micro", target=microphone.voiceProcess, args=(LoggingQueue, ActionQueue, AudioQueue, CommandQueue, ))
     voice_p.start()
 
-    # music_p = Process(name = "Music", target=music.MusicProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
-    # music_p.start()
+    music_p = Process(name = "Music", target=music.MusicProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
+    music_p.start()
 
     # timer_p = Process(name = "Timer", target=timer.TimerProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
     # timer_p.start()
@@ -113,8 +114,8 @@ def main():
     # airPurifier_p = Process(name = "AirPur", target=air_purifier.AirPurifierProcess, args=(LoggingQueue, AudioQueue, Command_q))
     # airPurifier_p.start()
 
-    humidifier_p = Process(name = "Humidifier", target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue, ))
-    humidifier_p.start()
+    # humidifier_p = Process(name = "Humidifier", target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue, ))
+    # humidifier_p.start()
 
     # voice_p.join()
     # audio_p.join()
