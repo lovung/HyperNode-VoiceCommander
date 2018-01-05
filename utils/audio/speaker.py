@@ -33,7 +33,7 @@ def audioProcess(log_q, audio_q, cmd_q, state):
     while True:
         time.sleep(0.25)
         try:
-            jsonStr = audio_q.get_nowait()
+            jsonStr = audio_q.get()
             logger.log(logging.DEBUG, "JSON: "+ jsonStr)
 
             speech = json_utils.jsonSimpleParser(jsonStr, "speech")
@@ -49,9 +49,6 @@ def audioProcess(log_q, audio_q, cmd_q, state):
                 os.system("mpg321 Resources/speech.mp3 &")
                 if (state.get() == 2):
                     state.set(1)
-
-            # command = cmd_q.get_nowait()
-            # logger.log(logging.DEBUG, "Command: "+ command)
 
         except Exception as e:
             # logger.log(logging.ERROR, "Failed to run audioProcess: exception={})".format(e))

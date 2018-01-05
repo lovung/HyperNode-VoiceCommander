@@ -85,7 +85,7 @@ def ActionManagerProcess(log_q, action_q, cmd_q, state):
                     logger.log(logging.DEBUG, "Action: " + action)
                     cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des",processTarget), action)
                     logger.log(logging.INFO, "Cmd Str: " + cmdStr)
-                    cmd_q.put_nowait(str(cmdStr))
+                    cmd_q.put(str(cmdStr))
                 else:
                     print("Not found")
         except Exception as e:

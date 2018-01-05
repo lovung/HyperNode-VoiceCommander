@@ -138,9 +138,6 @@ def mqttc_on_message_cb(client, userdata, msg):
     print("From "+ msg.topic +" - Received: "+ receivedString)
     if str.find(receivedString, "get_sys_info") >= 0:
         humidifier2_A.update_status(strings[3])
-    # else:
-    #     if strings[3] == "-1":
-    #         audio_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", "Your previous action was failed")))
 
 def mqttc_on_publish_cb(client, userdata, mid):
     print("Published: " + str(mid))
@@ -151,13 +148,13 @@ def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
     if subCommand == "check":
         logger.log(logging.INFO, "The humidity is " + str(humidifier2_A.get_humidity_s()))
         speechScript = "The humidity is " + str(humidifier2_A.get_humidity_s()) + " right now"
-        audio_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
+        audio_q.put(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
         return 0
     elif subCommand == "power" or subCommand == "switch":
         if typeCommand == "get":
             logger.log(logging.INFO, "The humidity is " + str(humidifier2_A.get_power_s()))
             speechScript = "The power status is " + str(humidifier2_A.get_power_s()) + " right now"
-            audio_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
+            audio_q.put(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
             return 0
         elif typeCommand == "set":
             if parameters["on_off"] == "on":
@@ -181,7 +178,7 @@ def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
     elif subCommand == "hotmist":
         if typeCommand == "get":
             speechScript = "The hot mist status is " + str(humidifier2_A.get_hot_mist_s()) + " right now"
-            audio_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
+            audio_q.put(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
             return 0
         elif typeCommand == "set":
             if parameters["on_off"] == "on":
@@ -195,7 +192,7 @@ def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
     elif subCommand == "mistlevel":
         if typeCommand == "get":
             speechScript = "The mist level is " + str(humidifier2_A.get_hot_mist_s()) + " now"
-            audio_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
+            audio_q.put(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
             return 0
         elif typeCommand == "set":
             level = parameters["humidifier-level"]
@@ -235,11 +232,14 @@ def HumidifierProcess(log_q, audio_q, cmd_q):
 
     while True:
         time.sleep(0.25)
+        command = None
         try:
-            command = cmd_q.get_nowait()
+            command = cmd_q.get()
         except Exception as a:
-            continue
+            pass
         try:
+            if command == None:
+                continue
             logger.log(logging.DEBUG, "Command received: " + command)
             logger.log(logging.DEBUG, "Desination: " + str(json_utils.jsonSimpleParser(command, "des")))
             if str(json_utils.jsonSimpleParser(command, "des")) == "humidifier":
@@ -258,7 +258,7 @@ def HumidifierProcess(log_q, audio_q, cmd_q):
                 processCommand(logger, audio_q, subCommand, typeCommand, parameters)
             else:
                 logger.log(logging.DEBUG, "The des is wrong")
-                cmd_q.put_nowait(command)
+                cmd_q.put(command)
                 time.sleep(2)
         except Exception as a:
             logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))

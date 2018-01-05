@@ -169,14 +169,18 @@ def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q, g_state):
 
     while True:
         time.sleep(0.15)
+        command = None
         try:
             command = cmd_q.get_nowait()
         except Exception as e:
-            continue
+            pass
 
         try:
             if (g_state.get() == 2) and (playingMusic == True):
                 pausePlayer()
+
+            if command == None:
+                continue
 
             logger.log(logging.DEBUG, "Command: " + command)
             if json_utils.jsonSimpleParser(command, "des") == "music":
@@ -195,7 +199,7 @@ def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q, g_state):
                     g_state.set(0)
             else:
                 logger.log(logging.DEBUG, "The des is wrong")
-                cmd_q.put_nowait(command)
+                cmd_q.put(command)
                 time.sleep(2)
         except Exception as e:
             logger.log(logging.ERROR, "Failed to run Music process: exception={})".format(e))
