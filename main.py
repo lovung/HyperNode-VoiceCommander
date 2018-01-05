@@ -128,8 +128,8 @@ def main():
     # airPurifier_p = Process(name = "AirPur", target=air_purifier.AirPurifierProcess, args=(LoggingQueue, AudioQueue, Command_q))
     # airPurifier_p.start()
 
-    # humidifier_p = Process(name = "Humidifier", target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue, state_machine,))
-    # humidifier_p.start()
+    humidifier_p = Process(name = "Humidifier", target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue, state_machine,))
+    humidifier_p.start()
 
     # voice_p.join()
     # audio_p.join()

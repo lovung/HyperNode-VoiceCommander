@@ -41,14 +41,16 @@ def audioProcess(log_q, audio_q, cmd_q, g_state):
             if speech is -1:
                 logger.log(logging.ERROR, "JSON parse failed")
             else:
+                setState = False
                 if (g_state.get() == 1):
                     logger.log(logging.DEBUG, "Set g_state to 2")
+                    setState = True
                     g_state.set(2)
                 logger.log(logging.INFO, AGENT_NAME + ":" + speech)
                 tts = gTTS(text=speech, lang='en')
                 tts.save("Resources/speech.mp3")
                 os.system("mpg321 Resources/speech.mp3 &")
-                if (g_state.get() == 2):
+                if (g_state.get() == 2) and (setState == True):
                     logger.log(logging.DEBUG, "Set g_state to 1")
                     g_state.set(1)
 

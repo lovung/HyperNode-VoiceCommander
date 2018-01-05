@@ -207,7 +207,7 @@ def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
             return 0
 
 
-def HumidifierProcess(log_q, audio_q, cmd_q):
+def HumidifierProcess(log_q, audio_q, cmd_q, g_state):
     try:
         logger = log.loggerInit(log_q)
     except Exception as e:

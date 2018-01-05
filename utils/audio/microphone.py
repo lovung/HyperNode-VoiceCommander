@@ -135,7 +135,6 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q, g_state):
             else:
                 detected = False
             time.sleep(0.1)
-            logger.log(logging.DEBUG, "State = " + str(state))
             
             if state == 0:
                 if runTrigger == True:
@@ -170,8 +169,8 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q, g_state):
 
                 if (action == -1 or action == "smalltalk.greetings.bye"):
                     aud_q.put(json_utils.jsonSimpleGenerate("speech", speechScript))
-                    state = 2
-                    g_state.set(2)
+                    state = 0 
+                    g_state.set(0)
                     continue
 
                 simpleJSON = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("action",action), json_utils.jsonSimpleGenerate("parameters",parameters))
