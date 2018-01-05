@@ -54,10 +54,10 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
         time.sleep(0.1)
         try:
             action = action_q.get()
-            # action = "{\"action\":\"smarthome.lights.switch.on\"}"
+            #action = '{"action":"smarthome.lights.switch.on"}'
+            #action = r'{"action":"music.play","parameters": {"song":"Shape of you","artist": [],"album": "","genre":"","playlist": "","service": "","sort": "","language": "","start-year": "","end-year": "","amount": ""}'
             if action is None:
-                # continue
-                pass
+                continue
             else:
                 actionStr = json_utils.jsonSimpleParser(action, "action")
                 parameters_j = json_utils.jsonSimpleParser(action, "parameters")
@@ -85,8 +85,9 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
                     logger.log(logging.DEBUG, "Action: " + action)
                     cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des",processTarget), action)
                     logger.log(logging.INFO, "Cmd Str: " + cmdStr)
-                    cmd_q.put_nowait(str(cmdStr))
+                    cmd_q.put(str(cmdStr))
                 else:
                     print("Not found")
         except Exception as e:
             logger.log(logging.ERROR, "Action Manager: Failed to run: exception={})".format(e))
+            continue

@@ -43,7 +43,14 @@ except ImportError:
     print("File: " + __file__ + " - Import JSON failed")
     exit()
 
-state = "Sleep"
+try:
+    import music 
+except ImportError:
+    print("File: " + __file__ + " - Import JSON failed")
+    exit()
+
+state = 0
+detected = False
 model = os.path.join(TOP_DIR, "models/Hyper.pmdl")
 detector = sb.HotwordDetector(model, sensitivity=0.5)
 interrupted = False
@@ -53,9 +60,12 @@ CLIENT_ACCESS_TOKEN = '587dba5ac7de45b3a05b7901a04f5b2e'
 def hotWordCallback():
     sb.play_audio_file()
     detector.terminate()
-    time.sleep(0.3)
+    time.sleep(1)
     global state
-    state = "Run"
+    global detected
+    detected = True
+    state = 1
+    print("Detected")
 
 # interrupt the hotword process loop
 def signal_handler():
@@ -110,7 +120,7 @@ def voice2JSON():
         return -1, -1, -1, -1, -1, -1
 
 
-def voiceProcess(log_q, action_q, aud_q, cmd_q):
+def voiceProcess(log_q, action_q, aud_q, cmd_q, g_state):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "voiceProcess is started")
 
@@ -118,23 +128,25 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
     runTrigger = False
     while True:
         try:
-            global state
+            global state 
+            global detected
+            if detected != True:
+                state = g_state.get()
+            else:
+                detected = False
             time.sleep(0.1)
-            try:
-                if state != "Sleep":
-                    command = cmd_q.get_nowait()
-                    if str(json_utils.jsonSimpleParser(command,"des")) == "voice":
-                        state = (json_utils.jsonSimpleParser(command,"state"))
-                        logger.log(logging.DEBUG, "Change the state to" + state)
-            except Exception as e:
-                pass
-
-            if state == "Sleep":
+            
+            if state == 0:
                 if runTrigger == True:
                     runTrigger = False
-                state = "Pause"
+                state = 2
+                logger.log(logging.DEBUG, "Set g_state to 2")
+                g_state.set(2)
                 hotWordDetect()
-            elif state == "Run":
+            elif state == 1:
+                if g_state.get() != 1:
+                    g_state.set(1)
+                    logger.log(logging.DEBUG, "Set g_state to 1")
                 logger.log(logging.INFO, "Voice is detected")
                 if runTrigger == False:
                     runTrigger = True
@@ -157,14 +169,15 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
 
                 if (action == -1 or action == "smalltalk.greetings.bye"):
                     aud_q.put(json_utils.jsonSimpleGenerate("speech", speechScript))
-                    state = "Sleep"
+                    state = 0 
+                    g_state.set(0)
                     continue
 
                 simpleJSON = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("action",action), json_utils.jsonSimpleGenerate("parameters",parameters))
-                action_q.put_nowait(str(simpleJSON))
+                action_q.put(str(simpleJSON))
                 if (score < 0.5 or actionIncomplete == 'true' or actionIncomplete == 'True'): # or not(speechScript)):
                     logger.log(logging.INFO, "Action is not complete or score is low")
-                    aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", "I am not sure to understand what you mean. Can you repeat, explain or give more information?"))
+                    aud_q.put(json_utils.jsonSimpleGenerate("speech", "I am not sure to understand what you mean. Can you repeat, explain or give more information?"))
                     time.sleep(8)
                     continue
                 elif not(speechScript):
@@ -173,7 +186,7 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                     if not aud_q.full():
                         if (speechScript and speechScript != -1):
                             logger.log(logging.DEBUG, "Put script to AudioQueue and ActionQueue")
-                            aud_q.put_nowait(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
+                            aud_q.put(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
                             time.sleep(2)
 
                         # if (speechScript2 and speechScript2 != -1 and speechScript != speechScript2):
@@ -182,12 +195,20 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q):
                         #     aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", speechScript2))
                     else:
                         logger.log(logging.WARNING, "Audio queue is full")
-                        state = "Sleep"
+                        logger.log(logging.DEBUG, "Set g_state to 2")
+                        state = 2
+                        g_state.set(2)
                         continue    
-            elif state == "Pause":
+            elif state == 2:
+                if g_state.get() != 2:
+                    logger.log(logging.DEBUG, "Set g_state to 2")
+                    state.set(2)
                 time.sleep(0.1)
             else:
-                state = "Sleep"
+                if g_state.get() != 2:
+                    logger.log(logging.DEBUG, "Set g_state to 2")
+                    state.set(2)
+                g_state.set(2)
         except Exception as e:
             logger.log(logging.ERROR, "Voice Process: Failed to run: exception={})".format(e))
             continue

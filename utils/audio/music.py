@@ -35,6 +35,8 @@ DEVELOPER_KEY = "AIzaSyBtMTZyNPxawJLtGEmbR7Co_8h9cbSbOKE"
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
+previousFile = ""
+
 def youtubeSearch(options):
     youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
                     developerKey=DEVELOPER_KEY)
@@ -61,6 +63,32 @@ def youtubeSearch(options):
     print("Videos:\n", "\n".join(videosString), "\n")
     return videoIDs 
 
+def youtubeSearchSong(songName):
+    youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
+                    developerKey=DEVELOPER_KEY)
+
+    # Call the search.list method to retrieve results matching the specified
+    # query term.
+    search_response = youtube.search().list(
+        q=songName,
+        part="id,snippet",
+        maxResults=5
+        ).execute()
+
+    videosString = []
+    videoIDs = []
+
+    # Add each result to the appropriate list, and then display the lists of
+    # matching videos, channels, and playlists.
+    for search_result in search_response.get("items", []):
+        if search_result["id"]["kind"] == "youtube#video":
+            videosString.append("%s (%s)" % (search_result["snippet"]["title"],
+                                         search_result["id"]["videoId"]))
+            videoIDs.append(search_result["id"]["videoId"])
+
+    print("Videos:\n", "\n".join(videosString), "\n")
+    return videoIDs 
+
 def youtubeLoadandPlay(videoID):
     print(videoID)
     url = "https://www.youtube.com/watch?v="+videoID
@@ -71,26 +99,135 @@ def youtubeLoadandPlay(videoID):
         #print(a.bitrate, a.extension, a.get_filesize())
         #if a.extension is "m4a":
     bestAudio = video.getbestaudio()
-    fileName = "yb_download."+bestAudio.extension
+    fileName = "Resources/yb_download."+bestAudio.extension
     bestAudio.download(filepath=fileName)
     print("Download success")
-    os.system("cvlc " +fileName)
+    os.system("cvlc " + fileName + " &")
+    global previousFile
+    previousFile = fileName
 
-def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q):
+def pausePlayer():
+    print("Pause...")
+    try:
+        os.system('ps aux | grep "vlc" | cut -d " " -f 9 | xargs kill -SIGSTOP')
+        global playingMusic
+        playingMusic = False
+    except Exception as e:
+        logger.log(logging.ERROR, "Failed to run Music process: exception={})".format(e))
+
+def resumePlayer():
+    print("Resume...")
+    try:
+        os.system('ps aux | grep "vlc" | cut -d " "  -f 9 | xargs kill -SIGCONT')
+        global playingMusic
+        playingMusic = True
+    except Exception as e:
+        logger.log(logging.ERROR, "Failed to run Music process: exception={})".format(e))
+
+def stopPlayer():
+    print("Stop...")
+    try:
+        os.system('ps aux | grep "vlc" | cut -d " " -f 9 | xargs kill -SIGKILL')
+        global playingMusic
+        playingMusic = False
+    except Exception as e:
+        logger.log(logging.ERROR, "Failed to run Music process: exception={})".format(e))
+
+def playPlayer():
+    print("Play...")
+    try:
+        os.system("cvlc " + previousFile + " &")
+        global playingMusic
+        playingMusic = True
+    except Exception as e:
+        logger.log(logging.ERROR, "Failed to run Music process: exception={})".format(e))
+
+def searchAndPlay(name):
+    if name is None:
+        return
+    print("Search: ", name)
+    videoIDs = youtubeSearchSong(name)
+    print("Download and play")
+    youtubeLoadandPlay(videoIDs[0])
+
+def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
+    if subCommand == "video":
+        if typeCommand == "play":
+            if parameters["video"]:
+                searchAndPlay(parameters["video"])
+            elif parameters["movie"]:
+                searchAndPlay(parameters["movie"])
+            elif parameters["song"]:
+                searchAndPlay(parameters["song"])
+        return 1
+    elif subCommand == "music":
+        if typeCommand == "play":
+            if parameters["song"]:
+                searchAndPlay(parameters["song"])
+            elif parameters["album"]:
+                searchAndPlay(parameters["album"])
+            elif parameters["playlist"]:
+                searchAndPlay(parameters["playlist"])
+        return 1
+    elif subCommand == "video_player_control" or subCommand == "music_player_control":
+        if typeCommand == "play" or typeCommand == "resume":
+            resumePlayer()
+            return 1
+        elif typeCommand == "pause":
+            pausePlayer()
+            return 2
+        elif typeCommand == "stop":
+            stopPlayer()
+            return 2
+        elif typeCommand == "repeat":
+            playPlayer()
+            return 1
+
+def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q, g_state):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "Music proccess is started")
+    playingMusic = False
 
     while True:
-        time.sleep(1)
+        time.sleep(0.15)
+        command = None
         try:
             command = cmd_q.get_nowait()
-        except HttpError as e:
-            continue
+        except Exception as e:
+            pass
 
         try:
+            if (g_state.get() == 2) and (playingMusic == True):
+                logger.log(logging.DEBUG, "Pause Player")
+                pausePlayer()
+
+            if command == None:
+                continue
+
             logger.log(logging.DEBUG, "Command: " + command)
             if json_utils.jsonSimpleParser(command, "des") == "music":
-                pass
+                parameters = json_utils.jsonSimpleParser(command, "parameters")
+                actionStr = str(json_utils.jsonSimpleParser(command, "action"))
+                actionWords = actionStr.split('.')
+
+                subCommand = actionWords[0]
+                logger.log(logging.DEBUG, "Sub Command: " + subCommand)
+                typeCommand = actionWords[1]
+                logger.log(logging.DEBUG, "Type Command: " + typeCommand)
+
+                ret = processCommand(logger, audio_q, subCommand, typeCommand, parameters)
+                if ret == 1:
+                    playingMusic = True
+                    logger.log(logging.DEBUG, "Set g_state to 0")
+                    g_state.set(0)
+            else:
+                logger.log(logging.DEBUG, "The des is wrong")
+                cmd_q.put(command)
+                time.sleep(2)
+        except Exception as e:
+            logger.log(logging.ERROR, "Failed to run Music process: exception={})".format(e))
+            continue
+        
 
 if __name__ == "__main__":
     argparser.add_argument("--q", help="Search term", default="Mashup Christmas & Happy New year")

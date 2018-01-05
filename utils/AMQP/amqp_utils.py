@@ -58,7 +58,7 @@ def AMQPProcess(log_q, send_q, rcv_q, cmd_q):
 
     while True:
         try:
-            jsonStr = send_q.get_nowait()
+            jsonStr = send_q.get()
         except Exception as e:
             continue
         try:

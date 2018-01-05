@@ -26,14 +26,14 @@ except ImportError:
 AGENT_NAME = "Hyper"
 
 
-def audioProcess(log_q, audio_q, cmd_q):
+def audioProcess(log_q, audio_q, cmd_q, g_state):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "audioProcess is started")
     
     while True:
         time.sleep(0.25)
         try:
-            jsonStr = audio_q.get_nowait()
+            jsonStr = audio_q.get()
             logger.log(logging.DEBUG, "JSON: "+ jsonStr)
 
             speech = json_utils.jsonSimpleParser(jsonStr, "speech")
@@ -41,17 +41,18 @@ def audioProcess(log_q, audio_q, cmd_q):
             if speech is -1:
                 logger.log(logging.ERROR, "JSON parse failed")
             else:
-                cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des","voice"),json_utils.jsonSimpleGenerate("state","Pause"))
-                cmd_q.put_nowait(str(cmdStr))
+                setState = False
+                if (g_state.get() == 1):
+                    logger.log(logging.DEBUG, "Set g_state to 2")
+                    setState = True
+                    g_state.set(2)
                 logger.log(logging.INFO, AGENT_NAME + ":" + speech)
                 tts = gTTS(text=speech, lang='en')
                 tts.save("Resources/speech.mp3")
-                os.system("mpg321 Resources/speech.mp3")
-                cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des","voice"),json_utils.jsonSimpleGenerate("state","Run"))
-                cmd_q.put_nowait(str(cmdStr))
-
-            # command = cmd_q.get_nowait()
-            # logger.log(logging.DEBUG, "Command: "+ command)
+                os.system("mpg321 Resources/speech.mp3 &")
+                if (g_state.get() == 2) and (setState == True):
+                    logger.log(logging.DEBUG, "Set g_state to 1")
+                    g_state.set(1)
 
         except Exception as e:
             # logger.log(logging.ERROR, "Failed to run audioProcess: exception={})".format(e))
