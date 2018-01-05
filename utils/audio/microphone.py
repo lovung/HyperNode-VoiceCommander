@@ -50,6 +50,7 @@ except ImportError:
     exit()
 
 state = 0
+detected = False
 model = os.path.join(TOP_DIR, "models/Hyper.pmdl")
 detector = sb.HotwordDetector(model, sensitivity=0.5)
 interrupted = False
@@ -59,11 +60,12 @@ CLIENT_ACCESS_TOKEN = '587dba5ac7de45b3a05b7901a04f5b2e'
 def hotWordCallback():
     sb.play_audio_file()
     detector.terminate()
-    # if music.playingMusic == True:
-    #     music.pausePlayer()
-    time.sleep(0.3)
+    time.sleep(1)
     global state
+    global detected
+    detected = True
     state = 1
+    print("Detected")
 
 # interrupt the hotword process loop
 def signal_handler():
@@ -127,9 +129,14 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q, g_state):
     while True:
         try:
             global state 
-            state = g_state.get()
+            global detected
+            if detected != True:
+                state = g_state.get()
+            else:
+                detected = False
             time.sleep(0.1)
-
+            logger.log(logging.DEBUG, "State = " + str(state))
+            
             if state == 0:
                 if runTrigger == True:
                     runTrigger = False

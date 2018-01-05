@@ -108,19 +108,39 @@ def youtubeLoadandPlay(videoID):
 
 def pausePlayer():
     print("Pause...")
-    os.system('ps aux | grep "vlc" | cut -d ' ' -f 9 | xargs kill -SIGSTOP')
+    try:
+        os.system('ps aux | grep "vlc" | cut -d " " -f 9 | xargs kill -SIGSTOP')
+        global playingMusic
+        playingMusic = False
+    except Exception as e:
+        logger.log(logging.ERROR, "Failed to run Music process: exception={})".format(e))
 
 def resumePlayer():
     print("Resume...")
-    os.system('ps aux | grep "vlc" | cut -d ' ' -f 9 | xargs kill -SIGCONT')
+    try:
+        os.system('ps aux | grep "vlc" | cut -d " "  -f 9 | xargs kill -SIGCONT')
+        global playingMusic
+        playingMusic = True
+    except Exception as e:
+        logger.log(logging.ERROR, "Failed to run Music process: exception={})".format(e))
 
 def stopPlayer():
     print("Stop...")
-    os.system('ps aux | grep "vlc" | cut -d ' ' -f 9 | xargs kill -SIGKILL')
+    try:
+        os.system('ps aux | grep "vlc" | cut -d " " -f 9 | xargs kill -SIGKILL')
+        global playingMusic
+        playingMusic = False
+    except Exception as e:
+        logger.log(logging.ERROR, "Failed to run Music process: exception={})".format(e))
 
 def playPlayer():
     print("Play...")
-    os.system("cvlc " + previousFile + " &")
+    try:
+        os.system("cvlc " + previousFile + " &")
+        global playingMusic
+        playingMusic = True
+    except Exception as e:
+        logger.log(logging.ERROR, "Failed to run Music process: exception={})".format(e))
 
 def searchAndPlay(name):
     if name is None:
