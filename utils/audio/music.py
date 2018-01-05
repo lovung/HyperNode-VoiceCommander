@@ -35,6 +35,8 @@ DEVELOPER_KEY = "AIzaSyBtMTZyNPxawJLtGEmbR7Co_8h9cbSbOKE"
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
+previousFile = ""
+playingMusic = False
 def youtubeSearch(options):
     youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
                     developerKey=DEVELOPER_KEY)
@@ -87,7 +89,6 @@ def youtubeSearchSong(songName):
     print("Videos:\n", "\n".join(videosString), "\n")
     return videoIDs 
 
-previousFile = ""
 def youtubeLoadandPlay(videoID):
     print(videoID)
     url = "https://www.youtube.com/watch?v="+videoID
@@ -138,6 +139,7 @@ def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
                 searchAndPlay(parameters["movie"])
             elif parameters["song"]:
                 searchAndPlay(parameters["song"])
+        return 1
     elif subCommand == "music":
         if typeCommand == "play":
             if parameters["song"]:
@@ -146,15 +148,20 @@ def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
                 searchAndPlay(parameters["album"])
             elif parameters["playlist"]:
                 searchAndPlay(parameters["playlist"])
+        return 1
     elif subCommand == "video_player_control" or subCommand == "music_player_control":
         if typeCommand == "play" or typeCommand == "resume":
             resumePlayer()
+            return 1
         elif typeCommand == "pause":
             pausePlayer()
+            return 2
         elif typeCommand == "stop":
             stopPlayer()
+            return 2
         elif typeCommand == "repeat":
             playPlayer()
+            return 1
 
 def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q):
     logger = log.loggerInit(log_q)
@@ -179,7 +186,10 @@ def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q):
                 typeCommand = actionWords[1]
                 logger.log(logging.DEBUG, "Type Command: " + typeCommand)
 
-                processCommand(logger, audio_q, subCommand, typeCommand, parameters)
+                ret = erocessCommand(logger, audio_q, subCommand, typeCommand, parameters)
+                if ret == 1:
+                    playingMusic = True
+                    cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des","voice"),json_utils.jsonSimplGenerate("state","Sleep"))
             else:
                 logger.log(logging.DEBUG, "The des is wrong")
                 cmd_q.put_nowait(command)

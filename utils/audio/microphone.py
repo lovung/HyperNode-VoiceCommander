@@ -43,6 +43,12 @@ except ImportError:
     print("File: " + __file__ + " - Import JSON failed")
     exit()
 
+try:
+    import music 
+except ImportError:
+    print("File: " + __file__ + " - Import JSON failed")
+    exit()
+
 state = "Sleep"
 model = os.path.join(TOP_DIR, "models/Hyper.pmdl")
 detector = sb.HotwordDetector(model, sensitivity=0.5)
@@ -53,6 +59,8 @@ CLIENT_ACCESS_TOKEN = '587dba5ac7de45b3a05b7901a04f5b2e'
 def hotWordCallback():
     sb.play_audio_file()
     detector.terminate()
+    if music.playingMusic == True:
+        music.pausePlayer()
     time.sleep(0.3)
     global state
     state = "Run"
