@@ -26,7 +26,7 @@ except ImportError:
 AGENT_NAME = "Hyper"
 
 
-def audioProcess(log_q, audio_q, cmd_q):
+def audioProcess(log_q, audio_q, cmd_q, state):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "audioProcess is started")
     
@@ -41,14 +41,14 @@ def audioProcess(log_q, audio_q, cmd_q):
             if speech is -1:
                 logger.log(logging.ERROR, "JSON parse failed")
             else:
-                cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des","voice"),json_utils.jsonSimpleGenerate("state","Pause"))
-                cmd_q.put_nowait(str(cmdStr))
+                if (state.get() == 1):
+                    state.set(2)
                 logger.log(logging.INFO, AGENT_NAME + ":" + speech)
                 tts = gTTS(text=speech, lang='en')
                 tts.save("Resources/speech.mp3")
                 os.system("mpg321 Resources/speech.mp3 &")
-                cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des","voice"),json_utils.jsonSimpleGenerate("state","Run"))
-                cmd_q.put_nowait(str(cmdStr))
+                if (state.get() == 2):
+                    state.set(1)
 
             # command = cmd_q.get_nowait()
             # logger.log(logging.DEBUG, "Command: "+ command)

@@ -163,7 +163,7 @@ def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
             playPlayer()
             return 1
 
-def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q):
+def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q, g_state):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "Music proccess is started")
 
@@ -175,6 +175,9 @@ def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q):
             continue
 
         try:
+            if (g_state.get() == 2) and (playingMusic == True):
+                pausePlayer()
+
             logger.log(logging.DEBUG, "Command: " + command)
             if json_utils.jsonSimpleParser(command, "des") == "music":
                 parameters = json_utils.jsonSimpleParser(command, "parameters")
@@ -186,14 +189,14 @@ def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q):
                 typeCommand = actionWords[1]
                 logger.log(logging.DEBUG, "Type Command: " + typeCommand)
 
-                ret = erocessCommand(logger, audio_q, subCommand, typeCommand, parameters)
+                ret = processCommand(logger, audio_q, subCommand, typeCommand, parameters)
                 if ret == 1:
                     playingMusic = True
-                    cmdStr = json_utils.jsonDoubleGenerate(json_utils.jsonSimpleGenerate("des","voice"),json_utils.jsonSimplGenerate("state","Sleep"))
+                    g_state.set(0)
             else:
                 logger.log(logging.DEBUG, "The des is wrong")
                 cmd_q.put_nowait(command)
-                time.sleep(1)
+                time.sleep(2)
         except Exception as e:
             logger.log(logging.ERROR, "Failed to run Music process: exception={})".format(e))
             continue

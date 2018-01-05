@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import multiprocessing
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Value, Lock
 import logging
 import logging.handlers
 from sys import byteorder
@@ -73,7 +73,19 @@ except ImportError:
 # def testQueue(AudioQueue):
 #     print("Put script to AudioQueue")
 #     AudioQueue.put(jsonSimpleGenerate("speech", "Hello"))
+class StateMachine(object):
+    """docstring for StateMachine"""
+    def __init__(self, initVal = 0):
+        super(StateMachine, self).__init__()
+        self.val = Value('i', initVal)
+        self.lock = Lock()
 
+    def set(self, inputValue):
+        self.val.value = inputValue
+
+    def get(self):
+        return self.val.value
+        
 def main(): 
     # Init queue for sending and receiving:
     LoggingQueue = Queue(1024)
@@ -83,6 +95,8 @@ def main():
     ActionQueue = Queue(1024)
     AudioQueue = Queue(1024)
 
+    state_machine = StateMachine(0)
+
     print("Start")
     logging_p = Process(name = "Log", target=logger.loggingProcess, args=(LoggingQueue, ))
     logging_p.start()
@@ -90,19 +104,19 @@ def main():
     # amqp_p = Process(name = "AMQP", target=amqp.AMQPProcess, args=(LoggingQueue, AMQPSendQueue, AMQPRcvQueue, CommandQueue, ))
     # amqp_p.start()
 
-    action_p = Process(name = "Action", target=action.ActionManagerProcess, args=(LoggingQueue, ActionQueue, CommandQueue, ))
+    action_p = Process(name = "Action", target=action.ActionManagerProcess, args=(LoggingQueue, ActionQueue, CommandQueue, state_machine, ))
     action_p.start()
 
     # status_p = Process(name = "Status", target=status.StatusProcess, args=(LoggingQueue, AMQPSendQueue, CommandQueue, ))
     # status_p.start()
 
-    audio_p = Process(name = "Voice", target=speaker.audioProcess, args=(LoggingQueue, AudioQueue, CommandQueue, ))
+    audio_p = Process(name = "Speaker", target=speaker.audioProcess, args=(LoggingQueue, AudioQueue, CommandQueue, state_machine,))
     audio_p.start()
 
-    voice_p = Process(name = "Micro", target=microphone.voiceProcess, args=(LoggingQueue, ActionQueue, AudioQueue, CommandQueue, ))
+    voice_p = Process(name = "Micro", target=microphone.voiceProcess, args=(LoggingQueue, ActionQueue, AudioQueue, CommandQueue, state_machine,))
     voice_p.start()
 
-    music_p = Process(name = "Music", target=music.MusicProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
+    music_p = Process(name = "Music", target=music.MusicProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, state_machine,))
     music_p.start()
 
     # timer_p = Process(name = "Timer", target=timer.TimerProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
@@ -114,7 +128,7 @@ def main():
     # airPurifier_p = Process(name = "AirPur", target=air_purifier.AirPurifierProcess, args=(LoggingQueue, AudioQueue, Command_q))
     # airPurifier_p.start()
 
-    # humidifier_p = Process(name = "Humidifier", target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue, ))
+    # humidifier_p = Process(name = "Humidifier", target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue, state_machine,))
     # humidifier_p.start()
 
     # voice_p.join()

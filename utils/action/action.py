@@ -36,7 +36,7 @@ actionDevicesList = ["smarthome.device"]
 actionList = [actionTimerList, actionLightList, actionMusicList, actionHumidifierList, actionDevicesList]
 processName = ["timer", "light", "music", "humidifier", "alldevices"]
 
-def ActionManagerProcess(log_q, action_q, cmd_q):
+def ActionManagerProcess(log_q, action_q, cmd_q, state):
     try:
         logger = log.loggerInit(log_q)
     except Exception as e:
