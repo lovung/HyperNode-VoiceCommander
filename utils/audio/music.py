@@ -36,7 +36,7 @@ YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
 previousFile = ""
-playingMusic = False
+
 def youtubeSearch(options):
     youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
                     developerKey=DEVELOPER_KEY)
@@ -166,6 +166,7 @@ def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
 def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q, g_state):
     logger = log.loggerInit(log_q)
     logger.log(logging.INFO, "Music proccess is started")
+    playingMusic = False
 
     while True:
         time.sleep(0.15)
@@ -177,6 +178,7 @@ def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q, g_state):
 
         try:
             if (g_state.get() == 2) and (playingMusic == True):
+                logger.log(logging.DEBUG, "Pause Player")
                 pausePlayer()
 
             if command == None:
@@ -196,6 +198,7 @@ def MusicProcess(log_q, amqp_s_q, audio_q, cmd_q, g_state):
                 ret = processCommand(logger, audio_q, subCommand, typeCommand, parameters)
                 if ret == 1:
                     playingMusic = True
+                    logger.log(logging.DEBUG, "Set g_state to 0")
                     g_state.set(0)
             else:
                 logger.log(logging.DEBUG, "The des is wrong")

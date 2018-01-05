@@ -134,10 +134,13 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q, g_state):
                 if runTrigger == True:
                     runTrigger = False
                 state = 2
+                logger.log(logging.DEBUG, "Set g_state to 2")
                 g_state.set(2)
                 hotWordDetect()
             elif state == 1:
-                g_sta.set(1)
+                if g_state.get() != 1:
+                    g_state.set(1)
+                    logger.log(logging.DEBUG, "Set g_state to 1")
                 logger.log(logging.INFO, "Voice is detected")
                 if runTrigger == False:
                     runTrigger = True
@@ -186,14 +189,19 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q, g_state):
                         #     aud_q.put_nowait(json_utils.jsonSimpleGenerate("speech", speechScript2))
                     else:
                         logger.log(logging.WARNING, "Audio queue is full")
+                        logger.log(logging.DEBUG, "Set g_state to 2")
                         state = 2
                         g_state.set(2)
                         continue    
             elif state == 2:
-                state.set(2)
+                if g_state.get() != 2:
+                    logger.log(logging.DEBUG, "Set g_state to 2")
+                    state.set(2)
                 time.sleep(0.1)
             else:
-                state = 2
+                if g_state.get() != 2:
+                    logger.log(logging.DEBUG, "Set g_state to 2")
+                    state.set(2)
                 g_state.set(2)
         except Exception as e:
             logger.log(logging.ERROR, "Voice Process: Failed to run: exception={})".format(e))

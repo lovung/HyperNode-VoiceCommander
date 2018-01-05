@@ -104,7 +104,7 @@ def main():
     # amqp_p = Process(name = "AMQP", target=amqp.AMQPProcess, args=(LoggingQueue, AMQPSendQueue, AMQPRcvQueue, CommandQueue, ))
     # amqp_p.start()
 
-    action_p = Process(name = "Action", target=action.ActionManagerProcess, args=(LoggingQueue, ActionQueue, CommandQueue, state_machine, ))
+    action_p = Process(name = "Action", target=action.ActionManagerProcess, args=(LoggingQueue, ActionQueue, CommandQueue, ))
     action_p.start()
 
     # status_p = Process(name = "Status", target=status.StatusProcess, args=(LoggingQueue, AMQPSendQueue, CommandQueue, ))
