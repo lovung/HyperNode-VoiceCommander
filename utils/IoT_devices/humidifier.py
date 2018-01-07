@@ -170,10 +170,11 @@ def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
         elif typeCommand == "on":
             logger.log(logging.INFO, "Turn the power on")
             humidifier2_A.set_power_s(1)
+            return 0
         elif typeCommand == "off":
             logger.log(logging.INFO, "Turn the power off")
             humidifier2_A.set_power_s(0)
-            
+            return 0
             
     elif subCommand == "hotmist":
         if typeCommand == "get":
@@ -231,12 +232,12 @@ def HumidifierProcess(log_q, audio_q, cmd_q, g_state):
         logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))
 
     while True:
-        time.sleep(0.25)
+        time.sleep(0.15)
         command = None
         try:
-            command = cmd_q.get()
+            command = cmd_q.get_nowait()
         except Exception as a:
-            pass
+            continue
         try:
             if command == None:
                 continue

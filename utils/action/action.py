@@ -80,6 +80,8 @@ def ActionManagerProcess(log_q, action_q, cmd_q):
                             processTarget = "humidifier"
                         elif str.find(parameters_j["device"], "light") >= 0:
                             processTarget = "light"
+                        else:
+                            continue
 
                     logger.log(logging.INFO, "Process Target: " + processTarget)
                     logger.log(logging.DEBUG, "Action: " + action)
