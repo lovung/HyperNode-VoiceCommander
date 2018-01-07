@@ -2,6 +2,7 @@ import multiprocessing
 import logging
 import logging.handlers
 from datetime import datetime
+import sys, traceback
 
 def loggingConfigurer():
     root = logging.getLogger()
@@ -30,6 +31,5 @@ def loggingProcess(queue):
             logger = logging.getLogger(record.name)
             logger.handle(record)  # No level or filter logic applied - just do it!
         except Exception:
-            import sys, traceback
-            print('Whoops! Problem:', file=sys.stderr)
-            traceback.print_exc(file=sys.stderr)
+            print("Failed to run Humidifier Process: exception={})".format(e))
+            continue

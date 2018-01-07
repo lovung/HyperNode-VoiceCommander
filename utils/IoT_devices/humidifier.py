@@ -232,12 +232,12 @@ def HumidifierProcess(log_q, audio_q, cmd_q, g_state):
         logger.log(logging.ERROR, "Failed to run Humidifier Process: exception={})".format(e))
 
     while True:
-        time.sleep(0.25)
+        time.sleep(0.15)
         command = None
         try:
-            command = cmd_q.get()
+            command = cmd_q.get_nowait()
         except Exception as a:
-            pass
+            continue
         try:
             if command == None:
                 continue

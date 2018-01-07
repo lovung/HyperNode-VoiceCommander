@@ -101,8 +101,11 @@ def main():
     logging_p = Process(name = "Log", target=logger.loggingProcess, args=(LoggingQueue, ))
     logging_p.start()
 
-    amqp_light_p = Process(name = "AMQP", target=amqp.AMQPLightProcess, args=(LoggingQueue, AMQPSendQueue, CommandQueue, ))
+    amqp_light_p = Process(name = "AMQP_Light", target=amqp.AMQPLightProcess, args=(LoggingQueue, AudioQueue, CommandQueue, ))
     amqp_light_p.start()
+
+    amqp_light_rcv_p = Process(name = "AMQP_Light_Rcv", target=amqp.AMQPLightRcvProcess, args=(LoggingQueue, ))
+    amqp_light_rcv_p.start()
 
     action_p = Process(name = "Action", target=action.ActionManagerProcess, args=(LoggingQueue, ActionQueue, CommandQueue, ))
     action_p.start()
