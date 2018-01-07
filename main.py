@@ -101,14 +101,11 @@ def main():
     logging_p = Process(name = "Log", target=logger.loggingProcess, args=(LoggingQueue, ))
     logging_p.start()
 
-    # amqp_p = Process(name = "AMQP", target=amqp.AMQPProcess, args=(LoggingQueue, AMQPSendQueue, AMQPRcvQueue, CommandQueue, ))
-    # amqp_p.start()
+    amqp_light_p = Process(name = "AMQP", target=amqp.AMQPLightProcess, args=(LoggingQueue, AMQPSendQueue, CommandQueue, ))
+    amqp_light_p.start()
 
     action_p = Process(name = "Action", target=action.ActionManagerProcess, args=(LoggingQueue, ActionQueue, CommandQueue, ))
     action_p.start()
-
-    # status_p = Process(name = "Status", target=status.StatusProcess, args=(LoggingQueue, AMQPSendQueue, CommandQueue, ))
-    # status_p.start()
 
     audio_p = Process(name = "Speaker", target=speaker.audioProcess, args=(LoggingQueue, AudioQueue, CommandQueue, state_machine,))
     audio_p.start()
@@ -122,21 +119,9 @@ def main():
     # timer_p = Process(name = "Timer", target=timer.TimerProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
     # timer_p.start()
 
-    # light_p = Process(name = "Light", target=light.LightProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
-    # light_p.start()
-
-    # airPurifier_p = Process(name = "AirPur", target=air_purifier.AirPurifierProcess, args=(LoggingQueue, AudioQueue, Command_q))
-    # airPurifier_p.start()
-
     humidifier_p = Process(name = "Humidifier", target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue, state_machine,))
     humidifier_p.start()
 
-    # voice_p.join()
-    # audio_p.join()
-    # amqp_p.join()
-    # airPurifier_p.join()
-    # humidifier_p.join()
-    # action_p.join()
     logging_p.join()
 
 if __name__ == '__main__':

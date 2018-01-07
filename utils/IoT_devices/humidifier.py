@@ -170,10 +170,11 @@ def processCommand(logger, audio_q, subCommand, typeCommand, parameters):
         elif typeCommand == "on":
             logger.log(logging.INFO, "Turn the power on")
             humidifier2_A.set_power_s(1)
+            return 0
         elif typeCommand == "off":
             logger.log(logging.INFO, "Turn the power off")
             humidifier2_A.set_power_s(0)
-            
+            return 0
             
     elif subCommand == "hotmist":
         if typeCommand == "get":

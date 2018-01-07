@@ -187,7 +187,7 @@ def voiceProcess(log_q, action_q, aud_q, cmd_q, g_state):
                         if (speechScript and speechScript != -1):
                             logger.log(logging.DEBUG, "Put script to AudioQueue and ActionQueue")
                             aud_q.put(str(json_utils.jsonSimpleGenerate("speech", speechScript)))
-                            time.sleep(2)
+                            time.sleep(len(speechScript)/10)
 
                         # if (speechScript2 and speechScript2 != -1 and speechScript != speechScript2):
                         #     time.sleep(1)
