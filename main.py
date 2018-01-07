@@ -70,6 +70,13 @@ except ImportError:
     print("File: " + __file__ + " - Import IoT_devices failed")
     exitProgram()
 
+try:
+    sys.path.insert(0, os.path.join(TOP_DIR, "utils/timer"))
+    import timer
+except ImportError:
+    print("File: " + __file__ + " - Import Timer failed")
+    exitProgram()
+
 # def testQueue(AudioQueue):
 #     print("Put script to AudioQueue")
 #     AudioQueue.put(jsonSimpleGenerate("speech", "Hello"))
@@ -119,8 +126,8 @@ def main():
     music_p = Process(name = "Music", target=music.MusicProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, state_machine,))
     music_p.start()
 
-    # timer_p = Process(name = "Timer", target=timer.TimerProcess, args=(LoggingQueue, AMQPSendQueue, AudioQueue, CommandQueue, ))
-    # timer_p.start()
+    timer_p = Process(name = "Timer", target=timer.TimerProcess, args=(LoggingQueue, AudioQueue, CommandQueue, ))
+    timer_p.start()
 
     humidifier_p = Process(name = "Humidifier", target=humidifier.HumidifierProcess, args=(LoggingQueue, AudioQueue, CommandQueue, state_machine,))
     humidifier_p.start()
